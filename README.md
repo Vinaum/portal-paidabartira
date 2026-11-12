@@ -2,9 +2,13 @@
 
 Comunidade, memória e networking da república Paidabartira (fundada em 4 de março de 2007).
 
-**Estado atual: Etapa 2 (Fundação) concluída.** Há identidade visual, banco com RLS,
-autenticação e proteção de rotas. Os módulos do MVP (solicitação de acesso, perfis,
-diretório, eventos, caixinha, administração) são a Etapa 3 e ainda não existem.
+**Estado atual: Etapa 3 (MVP) em andamento.**
+
+| Módulo | Situação |
+| --- | --- |
+| Fundação: identidade visual, banco com RLS, autenticação | Pronto |
+| Solicitação e aprovação de acesso, convite | Pronto |
+| Perfis e privacidade, diretório, eventos, caixinha, dashboard, portal público completo | A fazer |
 
 ## Tecnologias
 
@@ -32,11 +36,11 @@ Sem `.env.local` o portal público funciona e as áreas restritas ficam fechadas
 ## Estrutura
 
 ```text
-src/app/(publico)   portal público (/, /estilo, /conta-suspensa)
+src/app/(publico)   portal público (/, /solicitar-acesso, /privacidade, /estilo)
 src/app/(auth)      /login, /recuperar-senha, /definir-senha
 src/app/auth        /auth/confirm (destino dos links de e-mail)
 src/app/(membros)   área restrita (/painel)
-src/app/admin       painel administrativo
+src/app/admin       painel administrativo (/admin, /admin/solicitacoes)
 src/features        lógica por domínio (actions, schemas, componentes)
 src/components      componentes de interface reutilizáveis
 src/lib             Supabase, sessão, permissões, rotas

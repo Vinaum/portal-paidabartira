@@ -105,3 +105,20 @@ No **SQL Editor**, todas as tabelas de `public` devem estar com RLS ligada:
 ```sql
 select tablename, rowsecurity from pg_tables where schemaname = 'public' order by 1;
 ```
+
+## 9. Como funciona o convite
+
+1. A pessoa preenche `/solicitar-acesso`. O pedido fica pendente.
+2. Em `/admin/solicitacoes`, quem tem a permissão de analisar aprova (definindo categoria,
+   fundador e papel), rejeita ou registra um pedido de informações.
+3. Com o pedido aprovado, há duas formas de convidar:
+   - **Gerar link de convite:** nenhum e-mail é enviado. O link aparece uma única vez para o
+     administrador, que o repassa à pessoa (por exemplo, por WhatsApp). Funciona sem SMTP.
+   - **Enviar convite por e-mail:** exige SMTP próprio configurado (seção 5) e o modelo
+     "Invite user" ajustado (seção 4).
+4. A pessoa abre o link, confirma, define a senha e a conta é ativada com os dados da
+   aprovação.
+
+Gerar um novo convite invalida o anterior. O link expira conforme o tempo configurado em
+**Authentication > Emails** (por padrão, 1 hora na configuração local; confira o valor do
+seu projeto).

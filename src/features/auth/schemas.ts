@@ -42,19 +42,4 @@ export const confirmLinkSchema = z.object({
   type: z.enum(["invite", "recovery", "email_change", "email"]),
 });
 
-export type FormState = {
-  status: "idle" | "error" | "success";
-  message?: string;
-  fieldErrors?: Record<string, string>;
-};
-
-export const initialFormState: FormState = { status: "idle" };
-
-export function fieldErrorsFrom(error: z.ZodError): Record<string, string> {
-  const errors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    const key = String(issue.path[0] ?? "form");
-    if (!errors[key]) errors[key] = issue.message;
-  }
-  return errors;
-}
+export { fieldErrorsFrom, initialFormState, type FormState } from "@/lib/form";

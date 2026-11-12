@@ -86,10 +86,10 @@ select results_eq(
   'seção pública só aparece ao anônimo se o dono autorizou o portal');
 select is_empty('select * from public.profile_phone', 'anônimo não vê telefone');
 select is_empty('select * from public.profile_professional', 'anônimo não vê seção "somente membros"');
-select lives_ok(
+select throws_ok(
   $$insert into public.membership_requests (full_name, email, relationship, justification, policy_version)
     values ('Visitante Novo', 'novo@example.test', 'Agregado', 'Amigo da casa desde 2015.', '2026-11')$$,
-  'anônimo envia solicitação');
+  '42501', null, 'anônimo não insere solicitação direto na tabela');
 select throws_ok(
   $$insert into public.membership_requests (full_name, email, relationship, justification, policy_version, assigned_role)
     values ('Esperto', 'esperto@example.test', 'x1', 'Quero ser superadmin já.', '2026-11', 'superadmin')$$,

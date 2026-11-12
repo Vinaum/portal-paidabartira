@@ -35,7 +35,14 @@ export function PublicFooter() {
         <p className="font-display text-lg">
           República {site.name} · {foundedYear()}
         </p>
-        <p className="rotulo text-papel">Comunidade, memória e encontros</p>
+        <nav aria-label="Rodapé" className="flex gap-5">
+          <Link href="/solicitar-acesso" className="underline-offset-4 hover:underline">
+            Solicitar acesso
+          </Link>
+          <Link href="/privacidade" className="underline-offset-4 hover:underline">
+            Privacidade
+          </Link>
+        </nav>
       </div>
     </footer>
   );

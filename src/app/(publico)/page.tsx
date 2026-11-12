@@ -6,8 +6,8 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { foundedOnLong, placeholder, site } from "@/config/site";
 
 /**
- * Página inicial da Etapa 2 (Fundação): apresenta a identidade e o acesso.
- * Eventos, moradores, caixinha e solicitação de acesso entram na Etapa 3.
+ * Página inicial: identidade da república e entrada para a área restrita.
+ * Eventos, moradores e caixinha entram com seus módulos.
  */
 export default function HomePage() {
   return (
@@ -22,7 +22,10 @@ export default function HomePage() {
             por perto quem passou por ela.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <ButtonLink href="/login">Entrar no portal</ButtonLink>
+            <ButtonLink href="/solicitar-acesso">Solicitar acesso</ButtonLink>
+            <ButtonLink href="/login" variant="outline">
+              Já tenho conta
+            </ButtonLink>
           </div>
         </div>
         <div className="mx-auto w-full max-w-sm">
@@ -46,8 +49,7 @@ export default function HomePage() {
       </section>
 
       <Notice>
-        O portal está em construção. Eventos, moradores, caixinha e o pedido de acesso para
-        novos integrantes chegam nas próximas etapas.
+        O portal está em construção. Eventos, moradores e caixinha chegam nas próximas etapas.
       </Notice>
     </div>
   );

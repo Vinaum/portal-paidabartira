@@ -16,13 +16,15 @@ Com a Supabase CLI (`npx supabase`):
 ```bash
 npx supabase login
 npx supabase link --project-ref SEU_PROJECT_REF
-npx supabase db push
+npx supabase db push --remote
 ```
+
+Sem `--remote`, a CLI tenta um banco local em Docker.
 
 `db push` aplica, em ordem, os arquivos de `supabase/migrations/`. Nunca edite uma
 migration já aplicada: crie uma nova.
 
-**Não aplique** `supabase/tests/support/supabase_shim.sql` em um projeto real. Ele existe
+**Não aplique** `scripts/support/supabase_shim.sql` em um projeto real. Ele existe
 só para testes em Postgres comum.
 
 ## 3. Autenticação

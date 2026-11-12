@@ -81,3 +81,14 @@ as $$
 $$;
 
 grant usage on schema public to anon, authenticated, service_role;
+
+-- ---------------------------------------------------------------------------
+-- Privilégios padrão do Supabase.
+-- Em um projeto real, toda tabela, sequência e função criada em `public`
+-- nasce com ALL concedido a anon, authenticated e service_role. O shim
+-- reproduz isso para que os testes locais peguem qualquer migration que
+-- dependa, por engano, de "não ter GRANT".
+-- ---------------------------------------------------------------------------
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;

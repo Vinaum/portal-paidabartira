@@ -54,7 +54,7 @@ docs/               guias de Supabase, deploy, segurança e backup
 
 ## Testes de banco sem Docker
 
-`scripts/test-db.sh` aplica um *shim* (`supabase/tests/support/supabase_shim.sql`) que
+`scripts/test-db.sh` aplica um *shim* (`scripts/support/supabase_shim.sql`) que
 imita os objetos do Supabase (`auth.users`, `auth.uid()`, papéis, `storage.objects`) em
 um Postgres 16 comum com pgTAP, aplica as migrations e roda os testes:
 

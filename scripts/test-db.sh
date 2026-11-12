@@ -10,7 +10,7 @@ DB="${TEST_DB:-paidabartira_test}"
 psql -q -v ON_ERROR_STOP=1 -d postgres -c "drop database if exists ${DB}" -c "create database ${DB}"
 run() { psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$1" >/dev/null; }
 
-run supabase/tests/support/supabase_shim.sql
+run scripts/support/supabase_shim.sql
 for f in supabase/migrations/*.sql; do run "$f"; done
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -c "create extension if not exists pgtap with schema extensions" >/dev/null
 

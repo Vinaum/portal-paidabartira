@@ -35,7 +35,7 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 
 ## Convenções obrigatórias para novas migrations
 
-1. Toda tabela: `enable row level security` na mesma migration em que é criada.
+1. Toda tabela: `enable row level security` na mesma migration em que é criada, e `grant` explícito do que `anon` e `authenticated` precisam. Desde a migration `..._explicit_grants.sql`, nada é concedido automaticamente.
 2. Políticas explícitas por operação e por papel (`to anon`, `to authenticated`).
 3. Funções `security definer` sempre com `set search_path = ''` e, de preferência, no
    esquema `private` (não exposto pela API).

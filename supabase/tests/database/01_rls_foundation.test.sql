@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
-select plan(64);
+select plan(66);
 
 -- ---------------------------------------------------------------------------
 -- Cenário (criado como dono do banco, fora da RLS)
@@ -279,6 +279,17 @@ select throws_ok('update public.audit_logs set action = ''x''', '23001', null,
   'nem o dono do banco altera registros de auditoria');
 select cmp_ok((select count(*)::int from public.audit_logs), '>=', 4,
   'operações administrativas geraram auditoria');
+
+-- Guarda geral: nenhum GRANT padrão da plataforma sobrou em tabelas de public.
+select is(
+  (select count(*)::int from information_schema.role_table_grants
+    where table_schema = 'public' and grantee = 'anon' and privilege_type <> 'SELECT'),
+  0, 'anônimo não tem privilégio de escrita em nível de tabela');
+select is(
+  (select count(*)::int from information_schema.role_table_grants
+    where table_schema = 'public' and grantee in ('anon', 'authenticated')
+      and privilege_type in ('TRUNCATE', 'REFERENCES', 'TRIGGER')),
+  0, 'ninguém além do servidor tem TRUNCATE, REFERENCES ou TRIGGER');
 
 select * from finish();
 rollback;

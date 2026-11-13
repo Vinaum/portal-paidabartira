@@ -2,6 +2,7 @@ import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 import { requirePublicEnv } from "@/lib/env";
 
@@ -11,8 +12,11 @@ import { requirePublicEnv } from "@/lib/env";
  * Crie um cliente novo a cada requisição; nunca compartilhe entre requisições.
  */
 export async function createClient() {
-  // cookies() vem primeiro: marca a renderização como dinâmica, para que
-  // nada daqui rode durante a pré-renderização do build.
+  // connection() e cookies() vêm primeiro: marcam a renderização como
+  // dinâmica, para que nada daqui rode durante a pré-renderização. O cliente
+  // do Supabase lê o relógio ao carregar a sessão, o que o Next.js só aceita
+  // em renderização dinâmica.
+  await connection();
   const cookieStore = await cookies();
   const { supabaseUrl, supabaseKey } = requirePublicEnv();
 

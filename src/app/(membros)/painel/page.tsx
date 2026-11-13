@@ -31,17 +31,18 @@ export default async function DashboardPage() {
         <p>
           E-mail de login: <strong>{member.email ?? "não informado"}</strong>
         </p>
-        {canAccessAdmin(member.permissions) ? (
-          <div>
+        <div className="flex flex-wrap gap-3">
+          <ButtonLink href="/perfil">Editar meu perfil</ButtonLink>
+          {canAccessAdmin(member.permissions) ? (
             <ButtonLink href="/admin" variant="dark">
               Abrir administração
             </ButtonLink>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </Card>
 
       <Notice>
-        Diretório, eventos, edição de perfil e caixinha chegam na próxima etapa do portal.
+        Diretório, eventos e caixinha chegam nas próximas entregas.
       </Notice>
     </div>
   );

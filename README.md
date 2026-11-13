@@ -8,7 +8,8 @@ Comunidade, memória e networking da república Paidabartira (fundada em 4 de ma
 | --- | --- |
 | Fundação: identidade visual, banco com RLS, autenticação | Pronto |
 | Solicitação e aprovação de acesso, convite | Pronto |
-| Perfis e privacidade, diretório, eventos, caixinha, dashboard, portal público completo | A fazer |
+| Perfis e privacidade (edição do próprio perfil, visibilidade por seção) | Pronto, exceto foto |
+| Foto de perfil, diretório, eventos, caixinha, dashboard, portal público completo | A fazer |
 
 ## Tecnologias
 
@@ -39,7 +40,7 @@ Sem `.env.local` o portal público funciona e as áreas restritas ficam fechadas
 src/app/(publico)   portal público (/, /solicitar-acesso, /privacidade, /estilo)
 src/app/(auth)      /login, /recuperar-senha, /definir-senha
 src/app/auth        /auth/confirm (destino dos links de e-mail)
-src/app/(membros)   área restrita (/painel)
+src/app/(membros)   área restrita (/painel, /perfil)
 src/app/admin       painel administrativo (/admin, /admin/solicitacoes)
 src/features        lógica por domínio (actions, schemas, componentes)
 src/components      componentes de interface reutilizáveis

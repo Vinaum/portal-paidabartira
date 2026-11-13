@@ -5,17 +5,20 @@ import { Notice } from "@/components/ui/notice";
 import { SectionHeading } from "@/components/ui/section-heading";
 import {
   addEducation,
+  addPeriod,
   saveAddress,
   saveBasics,
   saveEmails,
   savePhone,
   saveProfessional,
-  saveResidency,
+  saveSocial,
 } from "@/features/perfis/actions";
-import { DeleteEducationButton, SectionVisibilityForm } from "@/features/perfis/components/education-forms";
+import { DeleteRowButton, SectionVisibilityForm } from "@/features/perfis/components/list-forms";
 import { ProfileForm } from "@/features/perfis/components/profile-form";
 import { getOwnProfile } from "@/features/perfis/queries";
+import { COMPLETIONS, COMPLETION_LABELS, SOCIAL_NETWORKS } from "@/features/perfis/schemas";
 import { requireActiveMember } from "@/lib/auth/session";
+import { formatPeriod } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Meu perfil" };
 
@@ -24,7 +27,7 @@ const s = (value: string | number | null | undefined) => (value === null || valu
 export default async function ProfilePage() {
   const member = await requireActiveMember();
   const data = await getOwnProfile(member.id);
-  const { profile, residency, emails, phone, address, professional, education, privacy } = data;
+  const { profile, periods, social, emails, phone, address, professional, education, privacy } = data;
 
   return (
     <div className="flex flex-col gap-10">
@@ -73,16 +76,46 @@ export default async function ProfilePage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeading number="02" title="Período na república" />
-        <Card>
-          <ProfileForm
-            action={saveResidency}
-            initial={{ joinedOn: s(residency.joined_republic_on), leftOn: s(residency.left_republic_on) }}
-            fields={[
-              { name: "joinedOn", label: "Entrada", kind: "date" },
-              { name: "leftOn", label: "Saída", kind: "date", hint: "Deixe em branco se ainda mora na casa." },
-            ]}
-          />
+        <SectionHeading number="02" title="Períodos na república" />
+        <Card className="flex flex-col gap-5">
+          {periods.length === 0 ? (
+            <p>Nenhum período cadastrado.</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {periods.map((period) => {
+                const label = formatPeriod(period.started_on, period.ended_on);
+                return (
+                  <li
+                    key={period.id}
+                    className="flex flex-wrap items-center justify-between gap-3 border-b border-sepia pb-3 last:border-b-0"
+                  >
+                    <span className="font-semibold first-letter:uppercase">{label}</span>
+                    <DeleteRowButton kind="period" id={period.id} label={label} />
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <div className="fio-duplo pt-4">
+            <h3 className="mb-1 text-xl font-semibold">Adicionar período</h3>
+            <p className="mb-3 text-sepia-escuro">
+              Quem saiu e voltou cadastra um período para cada passagem pela casa.
+            </p>
+            <ProfileForm
+              action={addPeriod}
+              submitLabel="Adicionar"
+              initial={{ startedOn: "", endedOn: "" }}
+              fields={[
+                { name: "startedOn", label: "Entrada (mês e ano)", kind: "month", required: true },
+                {
+                  name: "endedOn",
+                  label: "Saída (mês e ano)",
+                  kind: "month",
+                  hint: "Deixe em branco se ainda mora na casa.",
+                },
+              ]}
+            />
+          </div>
         </Card>
       </section>
 
@@ -156,12 +189,14 @@ export default async function ProfilePage() {
                     <span className="block font-semibold">{item.course}</span>
                     <span className="text-sepia-escuro">
                       {item.institution}
-                      {item.start_year || item.end_year
-                        ? ` · ${s(item.start_year) || "?"} a ${s(item.end_year) || "em curso"}`
+                      {item.start_year ? ` · ingresso em ${item.start_year}` : ""}
+                      {item.end_year
+                        ? ` · ${item.completion === "completed" ? "concluído" : "saída"} em ${item.end_year}`
                         : ""}
+                      {` · ${COMPLETION_LABELS[item.completion]}`}
                     </span>
                   </span>
-                  <DeleteEducationButton id={item.id} label={item.course} />
+                  <DeleteRowButton kind="education" id={item.id} label={item.course} />
                 </li>
               ))}
             </ul>
@@ -172,12 +207,24 @@ export default async function ProfilePage() {
             <ProfileForm
               action={addEducation}
               submitLabel="Adicionar"
-              initial={{ course: "", institution: "", startYear: "", endYear: "" }}
+              initial={{ course: "", institution: "", startYear: "", endYear: "", completion: "completed" }}
               fields={[
                 { name: "course", label: "Curso", required: true },
                 { name: "institution", label: "Faculdade ou instituição", required: true },
                 { name: "startYear", label: "Ano de ingresso", kind: "number" },
-                { name: "endYear", label: "Ano de conclusão", kind: "number" },
+                {
+                  name: "endYear",
+                  label: "Ano de conclusão ou de saída",
+                  kind: "number",
+                  hint: "Em branco se ainda está cursando.",
+                },
+                {
+                  name: "completion",
+                  label: "Situação",
+                  kind: "select",
+                  required: true,
+                  options: COMPLETIONS.map((value) => ({ value, label: COMPLETION_LABELS[value] })),
+                },
               ]}
             />
           </div>
@@ -194,7 +241,6 @@ export default async function ProfilePage() {
               company: s(professional?.company),
               jobTitle: s(professional?.job_title),
               field: s(professional?.field),
-              linkedinUrl: s(professional?.linkedin_url),
               websiteUrl: s(professional?.website_url),
               pitch: s(professional?.pitch),
               skills: (professional?.skills ?? []).join(", "),
@@ -203,10 +249,36 @@ export default async function ProfilePage() {
               { name: "company", label: "Empresa", autoComplete: "organization" },
               { name: "jobTitle", label: "Cargo", autoComplete: "organization-title" },
               { name: "field", label: "Área de atuação", wide: true },
-              { name: "linkedinUrl", label: "LinkedIn", kind: "url", hint: "Endereço completo, com https://" },
-              { name: "websiteUrl", label: "Site profissional", kind: "url" },
+              { name: "websiteUrl", label: "Site profissional", kind: "url", wide: true, hint: "Endereço completo, com https://" },
               { name: "skills", label: "Competências", wide: true, hint: "Separe por vírgulas. Até 30." },
               { name: "pitch", label: "Apresentação profissional", kind: "textarea" },
+            ]}
+          />
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <SectionHeading number="06" title="Redes sociais" />
+        <Card className="flex flex-col gap-3">
+          <p className="text-sepia-escuro">Cole o endereço do perfil ou digite só o seu @usuário.</p>
+          <ProfileForm
+            action={saveSocial}
+            visibility={privacy.social}
+            initial={{
+              linkedin: s(social?.linkedin_url),
+              instagram: s(social?.instagram_url),
+              facebook: s(social?.facebook_url),
+              x: s(social?.x_url),
+              github: s(social?.github_url),
+              other: s(social?.other_url),
+            }}
+            fields={[
+              { name: "linkedin", label: SOCIAL_NETWORKS.linkedin.label },
+              { name: "instagram", label: SOCIAL_NETWORKS.instagram.label },
+              { name: "facebook", label: SOCIAL_NETWORKS.facebook.label },
+              { name: "x", label: SOCIAL_NETWORKS.x.label },
+              { name: "github", label: SOCIAL_NETWORKS.github.label },
+              { name: "other", label: "Outro link", kind: "url", hint: "Endereço completo, com https://" },
             ]}
           />
         </Card>

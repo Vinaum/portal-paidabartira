@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 
-import { PROFILE_SECTIONS, VISIBILITIES, type ProfileSection, type Visibility } from "./schemas";
+import { COMPLETIONS, PROFILE_SECTIONS, VISIBILITIES, type ProfileSection, type Visibility } from "./schemas";
 
 const text = z.string().nullable();
 
@@ -20,7 +20,15 @@ const profileSchema = z.object({
   current_country: text,
   show_on_public_portal: z.boolean(),
 });
-const residencySchema = z.object({ joined_republic_on: text, left_republic_on: text });
+const periodSchema = z.object({ id: z.uuid(), started_on: z.string(), ended_on: text });
+const socialSchema = z.object({
+  linkedin_url: text,
+  instagram_url: text,
+  facebook_url: text,
+  x_url: text,
+  github_url: text,
+  other_url: text,
+});
 const emailsSchema = z.object({ official_email: text });
 const phoneSchema = z.object({ phone: text, whatsapp: text });
 const addressSchema = z.object({
@@ -36,7 +44,6 @@ const professionalSchema = z.object({
   company: text,
   job_title: text,
   field: text,
-  linkedin_url: text,
   website_url: text,
   pitch: text,
   skills: z.array(z.string()),
@@ -47,12 +54,14 @@ const educationSchema = z.object({
   institution: z.string(),
   start_year: z.number().nullable(),
   end_year: z.number().nullable(),
+  completion: z.enum(COMPLETIONS),
 });
 const privacySchema = z.object({ section: z.enum(PROFILE_SECTIONS), visibility: z.enum(VISIBILITIES) });
 
 export type OwnProfile = {
   profile: z.infer<typeof profileSchema>;
-  residency: z.infer<typeof residencySchema>;
+  periods: z.infer<typeof periodSchema>[];
+  social: z.infer<typeof socialSchema> | null;
   emails: z.infer<typeof emailsSchema> | null;
   phone: z.infer<typeof phoneSchema> | null;
   address: z.infer<typeof addressSchema> | null;
@@ -67,24 +76,25 @@ export async function getOwnProfile(memberId: string): Promise<OwnProfile> {
   const own = <T extends string>(table: T, columns: string) =>
     supabase.from(table).select(columns).eq("member_id", memberId);
 
-  const [profile, member, emails, phone, address, professional, education, privacy] = await Promise.all([
+  const [profile, periods, social, emails, phone, address, professional, education, privacy] = await Promise.all([
     own(
       "profiles",
       "full_name, display_name, nickname, bio, origin_city, origin_state, origin_country, current_city, current_country, show_on_public_portal",
     ).single(),
-    supabase.from("members").select("joined_republic_on, left_republic_on").eq("id", memberId).single(),
+    own("residency_periods", "id, started_on, ended_on").order("started_on", { ascending: true }),
+    own("profile_social", "linkedin_url, instagram_url, facebook_url, x_url, github_url, other_url").maybeSingle(),
     own("profile_emails", "official_email").maybeSingle(),
     own("profile_phone", "phone, whatsapp").maybeSingle(),
     own("profile_address", "street, complement, district, city, state, postal_code, country").maybeSingle(),
-    own("profile_professional", "company, job_title, field, linkedin_url, website_url, pitch, skills").maybeSingle(),
-    own("education", "id, course, institution, start_year, end_year").order("start_year", {
+    own("profile_professional", "company, job_title, field, website_url, pitch, skills").maybeSingle(),
+    own("education", "id, course, institution, start_year, end_year, completion").order("start_year", {
       ascending: false,
       nullsFirst: false,
     }),
     own("profile_privacy", "section, visibility"),
   ]);
 
-  for (const result of [profile, member, emails, phone, address, professional, education, privacy]) {
+  for (const result of [profile, periods, social, emails, phone, address, professional, education, privacy]) {
     if (result.error) throw new Error(`Falha ao ler o perfil: ${result.error.message}`);
   }
 
@@ -97,7 +107,8 @@ export async function getOwnProfile(memberId: string): Promise<OwnProfile> {
 
   return {
     profile: profileSchema.parse(profile.data),
-    residency: residencySchema.parse(member.data),
+    periods: z.array(periodSchema).parse(periods.data),
+    social: social.data ? socialSchema.parse(social.data) : null,
     emails: emails.data ? emailsSchema.parse(emails.data) : null,
     phone: phone.data ? phoneSchema.parse(phone.data) : null,
     address: address.data ? addressSchema.parse(address.data) : null,

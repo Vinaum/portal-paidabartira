@@ -7,11 +7,14 @@ import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/features/auth/components/submit-button";
 import { initialFormState } from "@/lib/form";
 
-import { deleteEducation, saveSectionVisibility } from "../actions";
+import { deleteEducation, deletePeriod, saveSectionVisibility } from "../actions";
 import { VISIBILITIES, VISIBILITY_LABELS, type ProfileSection, type Visibility } from "../schemas";
 
-export function DeleteEducationButton({ id, label }: { id: string; label: string }) {
-  const [state, formAction] = useActionState(deleteEducation, initialFormState);
+const deleteActions = { education: deleteEducation, period: deletePeriod };
+
+/** Botão "Remover" de um item de lista do perfil (formação ou período). */
+export function DeleteRowButton({ kind, id, label }: { kind: keyof typeof deleteActions; id: string; label: string }) {
+  const [state, formAction] = useActionState(deleteActions[kind], initialFormState);
   return (
     <form action={formAction} className="flex items-center gap-3">
       <input type="hidden" name="id" value={id} />

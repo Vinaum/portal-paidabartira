@@ -13,7 +13,9 @@ import { VISIBILITIES, VISIBILITY_LABELS, type Visibility } from "../schemas";
 export type FieldDef = {
   name: string;
   label: string;
-  kind?: "text" | "textarea" | "email" | "tel" | "url" | "date" | "number";
+  kind?: "text" | "textarea" | "email" | "tel" | "url" | "month" | "number" | "select";
+  /** Opções, quando kind = "select". */
+  options?: { value: string; label: string }[];
   hint?: string;
   autoComplete?: string;
   required?: boolean;
@@ -66,6 +68,23 @@ export function ProfileForm({
               error={errors[field.name]}
               className="sm:col-span-2"
             />
+          ) : field.kind === "select" ? (
+            <SelectField
+              key={field.name}
+              name={field.name}
+              label={field.label}
+              hint={field.hint}
+              required={field.required}
+              defaultValue={values[field.name] ?? ""}
+              error={errors[field.name]}
+              className={field.wide ? "sm:col-span-2" : undefined}
+            >
+              {(field.options ?? []).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </SelectField>
           ) : (
             <TextField
               key={field.name}

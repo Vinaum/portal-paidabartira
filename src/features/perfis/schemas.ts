@@ -9,7 +9,7 @@ export const VISIBILITY_LABELS: Record<Visibility, string> = {
   private: "Privado (só eu)",
 };
 
-export const PROFILE_SECTIONS = ["photo", "emails", "phone", "address", "professional", "academic"] as const;
+export const PROFILE_SECTIONS = ["photo", "emails", "phone", "address", "professional", "academic", "social"] as const;
 export type ProfileSection = (typeof PROFILE_SECTIONS)[number];
 
 const visibility = z.enum(VISIBILITIES, { error: "Escolha quem pode ver." });
@@ -21,12 +21,6 @@ const optional = (max: number) =>
     .trim()
     .max(max, `Use até ${max} caracteres.`)
     .transform((value) => (value === "" ? null : value));
-
-const optionalDate = z
-  .string()
-  .trim()
-  .transform((value) => (value === "" ? null : value))
-  .pipe(z.iso.date("Data inválida.").nullable());
 
 const optionalYear = z
   .string()
@@ -47,12 +41,37 @@ export const basicsSchema = z.object({
   showOnPublicPortal: z.boolean(),
 });
 
-export const residencySchema = z
-  .object({ joinedOn: optionalDate, leftOn: optionalDate })
-  .refine((data) => !data.joinedOn || !data.leftOn || data.leftOn >= data.joinedOn, {
-    path: ["leftOn"],
+/** Mês no formato AAAA-MM (campo <input type="month">). */
+const MONTH = /^(19[5-9]\d|20\d{2})-(0[1-9]|1[0-2])$/;
+const currentMonth = () => new Date().toISOString().slice(0, 7);
+
+export const periodSchema = z
+  .object({
+    startedOn: z.string().trim().regex(MONTH, "Informe mês e ano de entrada."),
+    endedOn: z
+      .string()
+      .trim()
+      .transform((value) => (value === "" ? null : value))
+      .pipe(z.string().regex(MONTH, "Mês inválido.").nullable()),
+  })
+  .refine((data) => data.startedOn <= currentMonth(), { path: ["startedOn"], message: "A entrada não pode ser no futuro." })
+  .refine((data) => data.endedOn === null || data.endedOn <= currentMonth(), {
+    path: ["endedOn"],
+    message: "A saída não pode ser no futuro.",
+  })
+  .refine((data) => data.endedOn === null || data.endedOn >= data.startedOn, {
+    path: ["endedOn"],
     message: "A saída não pode ser anterior à entrada.",
   });
+
+export type Period = { startedOn: string; endedOn: string | null };
+
+/** Dois períodos se sobrepõem? Meses no formato AAAA-MM; saída nula = até hoje. */
+export function periodsOverlap(a: Period, b: Period): boolean {
+  const endA = a.endedOn ?? "9999-12";
+  const endB = b.endedOn ?? "9999-12";
+  return a.startedOn <= endB && b.startedOn <= endA;
+}
 
 export const emailsSchema = z.object({
   officialEmail: z
@@ -85,7 +104,6 @@ export const professionalSchema = z.object({
   company: optional(120),
   jobTitle: optional(120),
   field: optional(120),
-  linkedinUrl: optionalUrl(/^https:\/\/\S+$/, "Use o endereço completo, começando com https://"),
   websiteUrl: optionalUrl(/^https?:\/\/\S+$/, "Use o endereço completo, começando com http:// ou https://"),
   pitch: optional(2000),
   skills: z
@@ -104,17 +122,94 @@ export const professionalSchema = z.object({
   visibility,
 });
 
+export const COMPLETIONS = ["completed", "in_progress", "not_completed"] as const;
+export type Completion = (typeof COMPLETIONS)[number];
+export const COMPLETION_LABELS: Record<Completion, string> = {
+  completed: "Concluído",
+  in_progress: "Em curso",
+  not_completed: "Não concluído",
+};
+
 export const educationSchema = z
   .object({
     course: z.string().trim().min(2, "Informe o curso.").max(120, "Use até 120 caracteres."),
     institution: z.string().trim().min(2, "Informe a instituição.").max(120, "Use até 120 caracteres."),
     startYear: optionalYear,
     endYear: optionalYear,
+    completion: z.enum(COMPLETIONS, { error: "Escolha a situação." }),
   })
   .refine((data) => data.startYear === null || data.endYear === null || data.endYear >= data.startYear, {
     path: ["endYear"],
     message: "A conclusão não pode ser anterior ao ingresso.",
   });
 
-export const educationDeleteSchema = z.object({ id: z.uuid() });
+export const rowIdSchema = z.object({ id: z.uuid() });
 export const sectionVisibilitySchema = z.object({ section: z.enum(PROFILE_SECTIONS), visibility });
+
+// ---------------------------------------------------------------------------
+// Redes sociais
+// ---------------------------------------------------------------------------
+export const SOCIAL_NETWORKS = {
+  linkedin: { label: "LinkedIn", hosts: ["linkedin.com"], base: "https://www.linkedin.com/in/" },
+  instagram: { label: "Instagram", hosts: ["instagram.com"], base: "https://www.instagram.com/" },
+  facebook: { label: "Facebook", hosts: ["facebook.com", "fb.com"], base: "https://www.facebook.com/" },
+  x: { label: "X (Twitter)", hosts: ["x.com", "twitter.com"], base: "https://x.com/" },
+  github: { label: "GitHub", hosts: ["github.com"], base: "https://github.com/" },
+} as const;
+export type SocialNetwork = keyof typeof SOCIAL_NETWORKS;
+
+const HANDLE = /^@?[A-Za-z0-9_][A-Za-z0-9._-]{0,59}$/;
+
+/**
+ * Aceita o endereço completo ou só o nome de usuário ("@fulano") e devolve
+ * sempre um endereço https da própria rede. Devolve `undefined` se o valor
+ * não for da rede indicada (evita um link qualquer rotulado como Instagram).
+ */
+export function normalizeSocialUrl(network: SocialNetwork, raw: string): string | null | undefined {
+  const value = raw.trim();
+  if (value === "") return null;
+  const { hosts, base } = SOCIAL_NETWORKS[network];
+
+  const looksLikeAddress = value.includes("/") || hosts.some((host) => value.toLowerCase().includes(host));
+  let candidate: string;
+  if (!looksLikeAddress && HANDLE.test(value)) {
+    candidate = base + value.replace(/^@/, "");
+  } else {
+    candidate = /^[a-z][a-z0-9+.-]*:/i.test(value) ? value : `https://${value}`;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(candidate);
+  } catch {
+    return undefined;
+  }
+  const host = url.hostname.toLowerCase();
+  const sameNetwork = hosts.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
+  if (url.protocol !== "https:" || !sameNetwork || url.username || url.password) return undefined;
+  if (candidate.length > 300) return undefined;
+  return url.toString();
+}
+
+const socialField = (network: SocialNetwork) =>
+  z.string().transform((value, context) => {
+    const normalized = normalizeSocialUrl(network, value);
+    if (normalized === undefined) {
+      context.addIssue({
+        code: "custom",
+        message: `Use o endereço do seu perfil no ${SOCIAL_NETWORKS[network].label} ou só o seu @usuário.`,
+      });
+      return z.NEVER;
+    }
+    return normalized;
+  });
+
+export const socialSchema = z.object({
+  linkedin: socialField("linkedin"),
+  instagram: socialField("instagram"),
+  facebook: socialField("facebook"),
+  x: socialField("x"),
+  github: socialField("github"),
+  other: optionalUrl(/^https:\/\/\S+$/, "Use o endereço completo, começando com https://"),
+  visibility,
+});

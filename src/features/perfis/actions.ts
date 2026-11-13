@@ -10,13 +10,15 @@ import { createClient } from "@/lib/supabase/server";
 import {
   addressSchema,
   basicsSchema,
-  educationDeleteSchema,
   educationSchema,
   emailsSchema,
   phoneSchema,
   professionalSchema,
-  residencySchema,
+  periodSchema,
+  periodsOverlap,
+  rowIdSchema,
   sectionVisibilitySchema,
+  socialSchema,
   type ProfileSection,
   type Visibility,
 } from "./schemas";
@@ -108,24 +110,79 @@ export async function saveBasics(_previous: FormState, formData: FormData): Prom
   return SAVED;
 }
 
-export async function saveResidency(_previous: FormState, formData: FormData): Promise<FormState> {
-  await requireActiveMember();
-  const values = read(formData, ["joinedOn", "leftOn"]);
-  const parsed = residencySchema.safeParse(values);
+/** Um período de residência a mais. Uma pessoa pode ter vários. */
+export async function addPeriod(_previous: FormState, formData: FormData): Promise<FormState> {
+  const member = await requireActiveMember();
+  const values = read(formData, ["startedOn", "endedOn"]);
+  const parsed = periodSchema.safeParse(values);
   if (!parsed.success) return invalid(parsed.error, values);
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("set_my_residency", {
-    p_joined_on: parsed.data.joinedOn,
-    p_left_on: parsed.data.leftOn,
+  const { data: existing, error: readError } = await supabase
+    .from("residency_periods")
+    .select("started_on, ended_on")
+    .eq("member_id", member.id);
+  if (readError) return FAILED;
+
+  const month = (date: string | null) => (date ? date.slice(0, 7) : null);
+  const overlaps = (existing ?? []).some((row) =>
+    periodsOverlap(parsed.data, { startedOn: String(row.started_on).slice(0, 7), endedOn: month(row.ended_on) }),
+  );
+  if (overlaps) {
+    return {
+      status: "error",
+      fieldErrors: { startedOn: "Este período se sobrepõe a outro já cadastrado." },
+      values,
+    };
+  }
+
+  const { error } = await supabase.from("residency_periods").insert({
+    member_id: member.id,
+    started_on: `${parsed.data.startedOn}-01`,
+    ended_on: parsed.data.endedOn ? `${parsed.data.endedOn}-01` : null,
   });
   if (error) {
     return error.code === "23514"
-      ? { status: "error", message: "Confira as datas: não podem ser futuras nem estar invertidas.", values }
+      ? { status: "error", message: "Confira o período: há um limite de 12 e as datas não podem ser futuras.", values }
       : FAILED;
   }
   revalidatePath("/perfil");
-  return SAVED;
+  return { status: "success", message: "Período adicionado." };
+}
+
+export async function deletePeriod(_previous: FormState, formData: FormData): Promise<FormState> {
+  const member = await requireActiveMember();
+  const parsed = rowIdSchema.safeParse({ id: formData.get("id") });
+  if (!parsed.success) return FAILED;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("residency_periods")
+    .delete()
+    .eq("id", parsed.data.id)
+    .eq("member_id", member.id);
+  if (error) return FAILED;
+  revalidatePath("/perfil");
+  return { status: "success", message: "Período removido." };
+}
+
+export async function saveSocial(_previous: FormState, formData: FormData): Promise<FormState> {
+  const values = read(formData, ["linkedin", "instagram", "facebook", "x", "github", "other", "visibility"]);
+  const parsed = socialSchema.safeParse(values);
+  if (!parsed.success) return invalid(parsed.error, values);
+  const data = parsed.data;
+  return saveSection(
+    "profile_social",
+    "social",
+    {
+      linkedin_url: data.linkedin,
+      instagram_url: data.instagram,
+      facebook_url: data.facebook,
+      x_url: data.x,
+      github_url: data.github,
+      other_url: data.other,
+    },
+    data.visibility,
+  );
 }
 
 export async function saveEmails(_previous: FormState, formData: FormData): Promise<FormState> {
@@ -182,7 +239,6 @@ export async function saveProfessional(_previous: FormState, formData: FormData)
     "company",
     "jobTitle",
     "field",
-    "linkedinUrl",
     "websiteUrl",
     "pitch",
     "skills",
@@ -198,7 +254,6 @@ export async function saveProfessional(_previous: FormState, formData: FormData)
       company: data.company,
       job_title: data.jobTitle,
       field: data.field,
-      linkedin_url: data.linkedinUrl,
       website_url: data.websiteUrl,
       pitch: data.pitch,
       skills: data.skills,
@@ -209,7 +264,7 @@ export async function saveProfessional(_previous: FormState, formData: FormData)
 
 export async function addEducation(_previous: FormState, formData: FormData): Promise<FormState> {
   const member = await requireActiveMember();
-  const values = read(formData, ["course", "institution", "startYear", "endYear"]);
+  const values = read(formData, ["course", "institution", "startYear", "endYear", "completion"]);
   const parsed = educationSchema.safeParse(values);
   if (!parsed.success) return invalid(parsed.error, values);
 
@@ -220,6 +275,7 @@ export async function addEducation(_previous: FormState, formData: FormData): Pr
     institution: parsed.data.institution,
     start_year: parsed.data.startYear,
     end_year: parsed.data.endYear,
+    completion: parsed.data.completion,
   });
   if (error) return FAILED;
   revalidatePath("/perfil");
@@ -228,7 +284,7 @@ export async function addEducation(_previous: FormState, formData: FormData): Pr
 
 export async function deleteEducation(_previous: FormState, formData: FormData): Promise<FormState> {
   const member = await requireActiveMember();
-  const parsed = educationDeleteSchema.safeParse({ id: formData.get("id") });
+  const parsed = rowIdSchema.safeParse({ id: formData.get("id") });
   if (!parsed.success) return FAILED;
 
   const supabase = await createClient();

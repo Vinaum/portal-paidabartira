@@ -93,6 +93,18 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - Permanecem após a exclusão: registros de auditoria (identificador e papel, sem nome nem
   texto livre) e o histórico de quem alterou o quê em outras pessoas.
 
+## Eventos
+
+- Visitante lê só eventos públicos publicados ou cancelados, e só as colunas de apresentação
+  (sem `created_by`). Integrante ativo lê todos os publicados ou cancelados. Rascunhos, só
+  para quem tem `events.manage`, que também escreve (a RLS confere; a ação confere de novo).
+- Evento publicado não se apaga, se cancela (fica o registro); só rascunho se apaga.
+- Confirmação de presença: só integrante ativo, em nome próprio, em evento publicado que
+  ainda não terminou. Quem vai aparece pelo nome de apresentação, apenas para integrantes
+  ativos (`event_attendees` é `SECURITY INVOKER`). Testes em `06_events.test.sql`.
+- Horários: o banco guarda o instante; o formulário trabalha em horário de Brasília e a
+  conversão fica em `features/eventos/time.ts` (com testes).
+
 ## O que ainda não está coberto
 
 - Política de Segurança de Conteúdo (CSP) estrita. Entram hoje os cabeçalhos básicos

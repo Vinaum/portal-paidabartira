@@ -18,7 +18,10 @@ export function PublicHeader() {
             <span className="rotulo text-sepia-escuro">República · desde {foundedYear()}</span>
           </span>
         </Link>
-        <nav aria-label="Principal">
+        <nav aria-label="Principal" className="flex items-center gap-5">
+          <Link href="/eventos" className="font-semibold underline-offset-4 hover:underline">
+            Eventos
+          </Link>
           <ButtonLink href="/login" variant="dark">
             Entrar
           </ButtonLink>

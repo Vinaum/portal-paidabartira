@@ -1,13 +1,16 @@
+import { Suspense } from "react";
+
 import { LogoSeal } from "@/components/layout/logo-seal";
 import { ButtonLink } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { PhotoFrame, PhotoPlaceholder } from "@/components/ui/photo-frame";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { foundedOnLong, placeholder, site } from "@/config/site";
+import { HomeUpcomingEvents } from "@/features/eventos/components/public-events";
 
 /**
  * Página inicial: identidade da república e entrada para a área restrita.
- * Eventos, moradores e caixinha entram com seus módulos.
+ * Moradores e caixinha entram com seus módulos.
  */
 export default function HomePage() {
   return (
@@ -48,9 +51,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      <Notice>
-        O portal está em construção. Eventos, moradores e caixinha chegam nas próximas etapas.
-      </Notice>
+      <section className="flex flex-col gap-4">
+        <SectionHeading number="02" kicker="Agenda" title="Próximos eventos" />
+        <Suspense fallback={<p>Carregando eventos…</p>}>
+          <HomeUpcomingEvents />
+        </Suspense>
+      </section>
+
+      <Notice>O portal está em construção. Moradores e caixinha chegam nas próximas etapas.</Notice>
     </div>
   );
 }

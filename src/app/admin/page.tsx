@@ -19,6 +19,7 @@ export const metadata: Metadata = { title: "Administração" };
 export default async function AdminHomePage() {
   const member = await requireAdminAccess();
   const canReview = member.permissions.includes(PERMISSIONS.requestsReview);
+  const canManageEvents = member.permissions.includes(PERMISSIONS.eventsManage);
   const canManageMembers = member.permissions.includes(PERMISSIONS.membersManage);
   const canHandlePrivacy = member.permissions.includes(PERMISSIONS.privacyHandle);
   const [pendingRequests, openDataRequests] = await Promise.all([
@@ -44,6 +45,18 @@ export default async function AdminHomePage() {
           </div>
           <ButtonLink href="/admin/solicitacoes" variant="dark">
             Abrir solicitações
+          </ButtonLink>
+        </Card>
+      ) : null}
+
+      {canManageEvents ? (
+        <Card className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold">Eventos</h2>
+            <p>Criar, publicar e cancelar eventos, e ver quem confirmou presença.</p>
+          </div>
+          <ButtonLink href="/admin/eventos" variant="dark">
+            Abrir eventos
           </ButtonLink>
         </Card>
       ) : null}

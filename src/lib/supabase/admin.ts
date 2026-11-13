@@ -7,11 +7,12 @@ import { requirePublicEnv } from "@/lib/env";
 /**
  * ÚNICO ponto do projeto que lê a chave secreta do Supabase.
  *
- * Este cliente ignora a RLS. Só pode ser usado para as três operações que o
- * Supabase Auth exige com privilégio de servidor:
+ * Este cliente ignora a RLS. Só pode ser usado para as operações que o
+ * Supabase exige com privilégio de servidor:
  *   1. enviar convite (auth.admin.inviteUserByEmail);
  *   2. bloquear ou desbloquear conta no Auth (suspensão);
- *   3. excluir conta (pedido do titular).
+ *   3. excluir conta (pedido do titular), incluindo apagar os arquivos da
+ *      pessoa no storage.
  * Quem chama deve ANTES conferir a permissão do usuário logado
  * (`requirePermission`) e registrar a operação em auditoria.
  * Nunca use este cliente para ler ou gravar tabelas da aplicação.

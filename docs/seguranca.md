@@ -71,6 +71,28 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - Pedido de exclusão de conta: um por vez, abre uma solicitação em `data_requests`; a
   análise pela administração entra com o módulo de administração.
 
+## Administração de integrantes e pedidos de dados
+
+- As leituras administrativas são funções `SECURITY DEFINER` (`admin_list_members`,
+  `admin_get_member`, `admin_member_history`, `admin_list_data_requests`) que conferem a
+  permissão logo na entrada e devolvem só as colunas necessárias: nenhuma seção privada do
+  perfil. O e-mail de login aparece apenas no detalhe, para quem tem `members.manage`.
+- Alterações passam por `admin_update_member`, `admin_set_member_role` e
+  `admin_resolve_data_request`, que gravam histórico e auditoria. Ninguém altera o próprio
+  vínculo; só o superadmin mexe em administradores.
+- Suspender ou desativar vale na hora pelo banco (a RLS barra a cada requisição) e também
+  bloqueia o login no Auth (`ban_duration`). Se o bloqueio no Auth falhar, a tela avisa e o
+  banco continua sendo a autoridade.
+- A auditoria de `data_requests` não guarda texto livre (motivo e resposta), porque ela é
+  imutável e sobrevive à exclusão da conta.
+- Exclusão de conta (pedido do titular), em passos: o banco valida e apaga a solicitação de
+  acesso original (nome, e-mail, telefone); o servidor apaga os arquivos do storage e o
+  usuário no Auth (o restante cai em cascata); o banco confere e registra. Conta de
+  superadmin não é excluída por aqui; administrador só por superadmin; ninguém executa a
+  própria. Se um passo falha, o pedido continua "em análise" e pode ser repetido.
+- Permanecem após a exclusão: registros de auditoria (identificador e papel, sem nome nem
+  texto livre) e o histórico de quem alterou o quê em outras pessoas.
+
 ## O que ainda não está coberto
 
 - Política de Segurança de Conteúdo (CSP) estrita. Entram hoje os cabeçalhos básicos

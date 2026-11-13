@@ -105,6 +105,16 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - Horários: o banco guarda o instante; o formulário trabalha em horário de Brasília e a
   conversão fica em `features/eventos/time.ts` (com testes).
 
+## Caixinha (transparência financeira)
+
+- **Várias caixinhas.** Cada uma tem meta opcional, visibilidade (`public` ou `members`) e PIX opcional. Dinheiro sempre em centavos inteiros.
+- **Quem lança.** Quem tem `finance.write` (administrador, superadmin) ou foi designado *responsável* por aquela caixinha (`fund_managers`). A designação é por caixinha, não um papel global, então um moderador ou integrante comum pode ser responsável e pode haver vários.
+- **Quem vê o quê.** Visitante: só o total arrecadado, a meta e o PIX de caixinhas públicas ativas. Integrante ativo: também saídas (uma a uma, com descrição), saldo e entradas somadas por mês. Descrição de entrada só aparece para quem gerencia. **Doadores não são registrados** em nenhum campo estruturado.
+- **Livro imutável.** `ledger_entries` não aceita UPDATE nem DELETE (gatilho) nem TRUNCATE. Correção é por estorno (`reverses_id`, único, mesmo valor e tipo). O saldo nunca fica negativo (gatilho com trava na linha da caixinha). A única mudança tolerada é `created_by` virar nulo quando a conta é excluída (LGPD).
+- **Auditoria.** Criar/alterar caixinha, lançar, estornar e designar responsável vão para `audit_logs`, sem texto livre e sem a chave PIX.
+- **Limitação conhecida.** Como entradas aparecem somadas por mês, um mês com uma única entrada revela o valor dela (não quem pagou). Se isso incomodar, agrupar por trimestre é uma mudança pequena em `fund_cashflow`.
+- **Futuro: Associação.** Uma área só para associados exigirá novo valor em `fund_visibility` (`ADD VALUE 'associates'`) e uma tabela de associados; não está implementado.
+
 ## O que ainda não está coberto
 
 - Política de Segurança de Conteúdo (CSP) estrita. Entram hoje os cabeçalhos básicos

@@ -19,6 +19,9 @@ export function PublicHeader() {
           </span>
         </Link>
         <nav aria-label="Principal" className="flex items-center gap-5">
+          <Link href="/caixinha" className="font-semibold underline-offset-4 hover:underline">
+            Caixinha
+          </Link>
           <Link href="/eventos" className="font-semibold underline-offset-4 hover:underline">
             Eventos
           </Link>

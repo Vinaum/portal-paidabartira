@@ -4,7 +4,7 @@ import { DEFAULT_AFTER_LOGIN, isProtectedPath, safeNextPath } from "@/lib/routes
 
 describe("isProtectedPath", () => {
   it("protege as áreas restritas e suas subrotas", () => {
-    for (const path of ["/painel", "/admin", "/admin/caixinha", "/diretorio/abc", "/historias"]) {
+    for (const path of ["/painel", "/admin", "/admin/caixinha", "/diretorio/abc", "/historias", "/financeiro", "/financeiro/abc/gerenciar"]) {
       expect(isProtectedPath(path)).toBe(true);
     }
   });

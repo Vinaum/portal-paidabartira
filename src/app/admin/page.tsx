@@ -20,6 +20,7 @@ export default async function AdminHomePage() {
   const member = await requireAdminAccess();
   const canReview = member.permissions.includes(PERMISSIONS.requestsReview);
   const canManageEvents = member.permissions.includes(PERMISSIONS.eventsManage);
+  const canManageFinance = member.permissions.includes(PERMISSIONS.financeWrite);
   const canManageMembers = member.permissions.includes(PERMISSIONS.membersManage);
   const canHandlePrivacy = member.permissions.includes(PERMISSIONS.privacyHandle);
   const [pendingRequests, openDataRequests] = await Promise.all([
@@ -57,6 +58,18 @@ export default async function AdminHomePage() {
           </div>
           <ButtonLink href="/admin/eventos" variant="dark">
             Abrir eventos
+          </ButtonLink>
+        </Card>
+      ) : null}
+
+      {canManageFinance ? (
+        <Card className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold">Caixinhas</h2>
+            <p>Criar caixinhas, designar responsáveis e registrar entradas e saídas.</p>
+          </div>
+          <ButtonLink href="/financeiro" variant="dark">
+            Abrir caixinhas
           </ButtonLink>
         </Card>
       ) : null}

@@ -35,3 +35,14 @@ export function formatPeriodYears(startedOn: string, endedOn: string | null): st
   const end = endedOn ? endedOn.slice(0, 4) : "hoje";
   return start === end ? start : `${start}–${end}`;
 }
+
+/** Hoje em Brasília, "AAAA-MM-DD" (para campos de data e validação de "não futura"). */
+export function todayInBrasilia(now = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(now);
+}
+
+/** Data pura "AAAA-MM-DD" -> "14/11/2026", sem passar por fuso. */
+export function formatDay(isoDate: string): string {
+  const [year, month, day] = isoDate.slice(0, 10).split("-");
+  return `${day}/${month}/${year}`;
+}

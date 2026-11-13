@@ -28,6 +28,9 @@ export function MemberHeader({ member, area }: { member: CurrentMember; area: "m
           <Link href="/agenda" className="font-semibold underline-offset-4 hover:underline">
             Agenda
           </Link>
+          <Link href="/financeiro" className="font-semibold underline-offset-4 hover:underline">
+            Caixinha
+          </Link>
           <Link href="/diretorio" className="font-semibold underline-offset-4 hover:underline">
             Diretório
           </Link>

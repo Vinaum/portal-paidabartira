@@ -11,7 +11,9 @@ import { requirePublicEnv } from "@/lib/env";
  * Supabase exige com privilégio de servidor:
  *   1. enviar convite (auth.admin.inviteUserByEmail);
  *   2. bloquear ou desbloquear conta no Auth (suspensão);
- *   3. excluir conta (pedido do titular), incluindo apagar os arquivos da
+ *   3. gravar fotos de produto da loja e assinar seus endereços (bucket "shop-media";
+ *      a permissão é conferida antes, e a RLS já filtrou quais produtos a pessoa vê);
+ *   4. excluir conta (pedido do titular), incluindo apagar os arquivos da
  *      pessoa no storage.
  * Quem chama deve ANTES conferir a permissão do usuário logado
  * (`requirePermission`) e registrar a operação em auditoria.

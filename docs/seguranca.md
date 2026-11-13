@@ -115,6 +115,17 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - **Limitação conhecida.** Como entradas aparecem somadas por mês, um mês com uma única entrada revela o valor dela (não quem pagou). Se isso incomodar, agrupar por trimestre é uma mudança pequena em `fund_cashflow`.
 - **Futuro: Associação.** Uma área só para associados exigirá novo valor em `fund_visibility` (`ADD VALUE 'associates'`) e uma tabela de associados; não está implementado.
 
+## Loja (catálogo e pedidos)
+
+- **Sem pagamento no site.** O integrante faz o pedido; o pagamento (PIX) é combinado fora e o pedido segue por `requested → confirmed → paid → delivered` (ou `cancelled`). As transições são validadas no banco; o integrante só cancela o que ainda não foi confirmado.
+- **Visibilidade por produto.** `public` (visitantes veem, p.ex. festas abertas) ou `members`. Rascunhos só aparecem para quem gerencia. A RLS decide; a página não filtra por conta própria.
+- **Quem pede.** Só integrante ativo (função `shop_request_order`, que valida tamanho, quantidade, disponibilidade e limita a 10 pedidos aguardando).
+- **Quem gerencia.** `store.manage` (administrador, superadmin) e *responsáveis da loja* designados por eles (`shop_managers`). Responsáveis não designam outros.
+- **Pedido guarda cópia** de nome, preço e orientações de pagamento da época; alterar o produto não muda pedidos antigos. Ao excluir uma conta (LGPD), o pedido permanece sem vínculo com a pessoa.
+- **Fotos.** Bucket privado `shop-media`, sem política para o cliente; só o servidor grava (re-encodado em WebP, sem metadados) e entrega endereços assinados de 1 h dos produtos que a RLS já liberou.
+- **Auditoria** de produtos, pedidos e responsáveis, sem texto livre dos pedidos.
+- **Limitação.** Produto "só para quem já morou ou é agregado" hoje vira "só integrantes" (inclui moradores atuais). Restringir por categoria é uma coluna a mais, se necessário.
+
 ## O que ainda não está coberto
 
 - Política de Segurança de Conteúdo (CSP) estrita. Entram hoje os cabeçalhos básicos

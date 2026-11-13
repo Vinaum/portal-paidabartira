@@ -56,6 +56,21 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - Redirecionamentos pós-login passam por `safeNextPath` (só caminhos internos).
 - Mensagens de login e de recuperação não revelam se um e-mail tem conta.
 
+## Diretório e foto de perfil
+
+- A busca do diretório é a função `search_directory`, `SECURITY INVOKER`: roda com os
+  direitos de quem chama, então a RLS de cada seção decide o que aparece. Dado que o dono
+  escondeu volta nulo e também não casa com filtro (não dá para descobrir a empresa de
+  alguém filtrando por ela). Os testes estão em `04_directory.test.sql`.
+- Os filtros viajam na URL (formulário GET), são validados com Zod e passam ao banco como
+  parâmetros; os curingas do `LIKE` são escapados.
+- A foto fica no bucket privado `member-media`. O servidor decodifica o arquivo com `sharp`,
+  recusa o que não for imagem, recorta em 512 px e regrava em WebP, o que descarta metadados
+  (inclusive GPS). A leitura usa URLs assinadas de 1 hora; a política do storage confere a
+  visibilidade da seção "foto" do dono.
+- Pedido de exclusão de conta: um por vez, abre uma solicitação em `data_requests`; a
+  análise pela administração entra com o módulo de administração.
+
 ## O que ainda não está coberto
 
 - Política de Segurança de Conteúdo (CSP) estrita. Entram hoje os cabeçalhos básicos

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { Card } from "@/components/ui/card";
 import { Notice } from "@/components/ui/notice";
@@ -15,10 +16,14 @@ import {
 } from "@/features/perfis/actions";
 import { DeleteRowButton, SectionVisibilityForm } from "@/features/perfis/components/list-forms";
 import { ProfileForm } from "@/features/perfis/components/profile-form";
+import { getOwnPhotoUrl } from "@/features/diretorio/queries";
+import { DeletionForm } from "@/features/lgpd/components/deletion-form";
+import { getOpenDeletionRequest } from "@/features/lgpd/queries";
+import { AvatarForm } from "@/features/perfis/components/avatar-form";
 import { getOwnProfile } from "@/features/perfis/queries";
 import { COMPLETIONS, COMPLETION_LABELS, SOCIAL_NETWORKS } from "@/features/perfis/schemas";
 import { requireActiveMember } from "@/lib/auth/session";
-import { formatPeriod } from "@/lib/format";
+import { formatDate, formatPeriod } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Meu perfil" };
 
@@ -26,7 +31,11 @@ const s = (value: string | number | null | undefined) => (value === null || valu
 
 export default async function ProfilePage() {
   const member = await requireActiveMember();
-  const data = await getOwnProfile(member.id);
+  const [data, photoUrl, deletion] = await Promise.all([
+    getOwnProfile(member.id),
+    getOwnPhotoUrl(member.id),
+    getOpenDeletionRequest(member.id),
+  ]);
   const { profile, periods, social, emails, phone, address, professional, education, privacy } = data;
 
   return (
@@ -76,7 +85,17 @@ export default async function ProfilePage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeading number="02" title="Períodos na república" />
+        <SectionHeading number="02" title="Foto" />
+        <Card className="flex flex-col gap-5">
+          <AvatarForm name={profile.display_name} photoUrl={photoUrl} />
+          <div className="fio-duplo pt-4">
+            <SectionVisibilityForm section="photo" visibility={privacy.photo} />
+          </div>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <SectionHeading number="03" title="Períodos na república" />
         <Card className="flex flex-col gap-5">
           {periods.length === 0 ? (
             <p>Nenhum período cadastrado.</p>
@@ -120,7 +139,7 @@ export default async function ProfilePage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeading number="03" title="Contato" />
+        <SectionHeading number="04" title="Contato" />
         <Card className="flex flex-col gap-3">
           <h3 className="text-xl font-semibold">E-mail oficial</h3>
           <p className="text-sepia-escuro">
@@ -174,7 +193,7 @@ export default async function ProfilePage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeading number="04" title="Formação" />
+        <SectionHeading number="05" title="Formação" />
         <Card className="flex flex-col gap-5">
           {education.length === 0 ? (
             <p>Nenhuma formação cadastrada.</p>
@@ -232,7 +251,7 @@ export default async function ProfilePage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeading number="05" title="Profissional" />
+        <SectionHeading number="06" title="Profissional" />
         <Card>
           <ProfileForm
             action={saveProfessional}
@@ -258,7 +277,7 @@ export default async function ProfilePage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeading number="06" title="Redes sociais" />
+        <SectionHeading number="07" title="Redes sociais" />
         <Card className="flex flex-col gap-3">
           <p className="text-sepia-escuro">Cole o endereço do perfil ou digite só o seu @usuário.</p>
           <ProfileForm
@@ -284,7 +303,23 @@ export default async function ProfilePage() {
         </Card>
       </section>
 
-      <Notice>A foto de perfil e o pedido de exclusão de conta entram na próxima entrega, junto com o diretório.</Notice>
+      <section className="flex flex-col gap-4">
+        <SectionHeading number="08" title="Privacidade e conta" />
+        <Card className="flex flex-col gap-4">
+          <p>
+            Você pode pedir a exclusão da conta e dos seus dados pessoais. O pedido é analisado pela administração e
+            tudo fica registrado. Veja a <Link href="/privacidade" className="font-semibold underline">política de privacidade</Link>.
+          </p>
+          {deletion ? (
+            <Notice>
+              Seu pedido de exclusão foi enviado em {formatDate(deletion.created_at)} e está{" "}
+              {deletion.status === "in_progress" ? "em análise" : "aguardando análise"}.
+            </Notice>
+          ) : (
+            <DeletionForm />
+          )}
+        </Card>
+      </section>
     </div>
   );
 }

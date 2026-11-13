@@ -28,3 +28,10 @@ export function formatMonth(isoDate: string): string {
 export function formatPeriod(startedOn: string, endedOn: string | null): string {
   return `${formatMonth(startedOn)} ${endedOn ? `a ${formatMonth(endedOn)}` : "até hoje"}`;
 }
+
+/** Versão curta para listas: "2007–2010", "2011–hoje". */
+export function formatPeriodYears(startedOn: string, endedOn: string | null): string {
+  const start = startedOn.slice(0, 4);
+  const end = endedOn ? endedOn.slice(0, 4) : "hoje";
+  return start === end ? start : `${start}–${end}`;
+}

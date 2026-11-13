@@ -33,6 +33,9 @@ export default async function DashboardPage() {
         </p>
         <div className="flex flex-wrap gap-3">
           <ButtonLink href="/perfil">Editar meu perfil</ButtonLink>
+          <ButtonLink href="/diretorio" variant="outline">
+            Ver o diretório
+          </ButtonLink>
           {canAccessAdmin(member.permissions) ? (
             <ButtonLink href="/admin" variant="dark">
               Abrir administração
@@ -42,7 +45,7 @@ export default async function DashboardPage() {
       </Card>
 
       <Notice>
-        Diretório, eventos e caixinha chegam nas próximas entregas.
+        Eventos e caixinha chegam nas próximas entregas.
       </Notice>
     </div>
   );

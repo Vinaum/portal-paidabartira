@@ -25,6 +25,9 @@ export function MemberHeader({ member, area }: { member: CurrentMember; area: "m
           <Link href="/painel" className="font-semibold underline-offset-4 hover:underline">
             Painel
           </Link>
+          <Link href="/diretorio" className="font-semibold underline-offset-4 hover:underline">
+            Diretório
+          </Link>
           <Link href="/perfil" className="font-semibold underline-offset-4 hover:underline">
             Meu perfil
           </Link>

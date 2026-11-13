@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  // Upload da foto de perfil (a Vercel aceita até 4,5 MB por requisição).
+  experimental: { serverActions: { bodySizeLimit: "4.5mb" } },
   turbopack: {
     rules: {
       "*.css": {

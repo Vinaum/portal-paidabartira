@@ -157,3 +157,14 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - Limite de tentativas próprio nos formulários públicos. O Supabase Auth já limita
   login e envio de e-mails; o formulário de solicitação (Etapa 3) terá limite próprio.
 - Testes de ponta a ponta (Playwright) contra um Supabase real: dependem do projeto criado.
+
+## Política de privacidade
+
+- O texto fica em `src/app/(publico)/privacidade/page.tsx` e a versão em `POLICY_VERSION`
+  (`src/features/acesso/schemas.ts`). Cada versão precisa de uma linha em
+  `privacy_policy_versions` (migration), porque o pedido de acesso grava a versão aceita.
+- Versão `2026-11-13`: passa a cobrir aniversário, histórias, comentários, agenda, loja, caixinha
+  e a lista pública, e detalha o que a exclusão de conta apaga ou mantém anonimizado.
+- Sempre que um módulo novo tratar dados pessoais, atualize o texto e publique uma nova versão.
+- Pendências: revisão jurídica e aviso aos integrantes já ativos sobre a nova versão
+  (por exemplo, um comunicado).

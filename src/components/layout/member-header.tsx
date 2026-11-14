@@ -12,7 +12,7 @@ const COMMUNITY: NavItem[] = [
   { href: "/agenda", label: "Agenda" },
   { href: "/historias", label: "Histórias" },
   { href: "/museu", label: "Museu" },
-  { href: "/diretorio", label: "Diretório" },
+  { href: "/diretorio", label: "Membros" },
 ];
 const SHOP: NavItem[] = [
   { href: "/loja", label: "Ver a loja" },
@@ -37,7 +37,7 @@ export function MemberHeader({ member, area }: { member: CurrentMember; area: "m
         </Link>
         <nav aria-label="Área restrita" className="flex flex-wrap items-center gap-x-5 gap-y-2">
           <NavLink href="/painel">Painel</NavLink>
-          <NavMenu label="Convivência" items={COMMUNITY} />
+          <NavMenu label="A República" items={COMMUNITY} />
           <NavMenu label="Loja" items={SHOP} />
           <NavLink href="/financeiro">Caixinha</NavLink>
           {canAccessAdmin(member.permissions) ? <NavLink href="/admin">Administração</NavLink> : null}

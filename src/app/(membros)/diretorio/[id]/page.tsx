@@ -37,7 +37,7 @@ export default async function MemberProfilePage({ params }: PageProps<"/diretori
     <div className="flex flex-col gap-8">
       <p>
         <Link href="/diretorio" className="font-semibold underline">
-          ← Diretório
+          ← Membros
         </Link>
       </p>
 

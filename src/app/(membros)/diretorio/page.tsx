@@ -10,7 +10,7 @@ import { searchDirectory } from "@/features/diretorio/queries";
 import { filtersToSearch, hasActiveFilters, parseDirectoryFilters } from "@/features/diretorio/schemas";
 import { requireActiveMember } from "@/lib/auth/session";
 
-export const metadata: Metadata = { title: "Diretório" };
+export const metadata: Metadata = { title: "Membros" };
 
 export default async function DirectoryPage({ searchParams }: PageProps<"/diretorio">) {
   await requireActiveMember();
@@ -19,7 +19,7 @@ export default async function DirectoryPage({ searchParams }: PageProps<"/direto
 
   return (
     <div className="flex flex-col gap-8">
-      <SectionHeading as="h1" kicker="Área de integrantes" title="Diretório" />
+      <SectionHeading as="h1" kicker="Área de integrantes" title="Membros" />
       <Card>
         <DirectoryFiltersForm filters={filters} />
       </Card>
@@ -45,7 +45,7 @@ export default async function DirectoryPage({ searchParams }: PageProps<"/direto
       </section>
 
       {pages > 1 ? (
-        <nav aria-label="Páginas do diretório" className="flex items-center justify-between gap-4">
+        <nav aria-label="Páginas de membros" className="flex items-center justify-between gap-4">
           {page > 1 ? (
             <Link href={`/diretorio${filtersToSearch(filters, page - 1)}`} className="font-semibold underline">
               ← Anterior

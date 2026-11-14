@@ -50,7 +50,7 @@ export default async function DashboardPage() {
         <div className="flex flex-wrap gap-3">
           <ButtonLink href="/perfil">Editar meu perfil</ButtonLink>
           <ButtonLink href="/diretorio" variant="outline">
-            Ver o diretório
+            Ver os membros
           </ButtonLink>
           {canAccessAdmin(member.permissions) ? (
             <ButtonLink href="/admin" variant="dark">

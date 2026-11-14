@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { parseBRL } from "@/features/caixinha/money";
 
+import { normalizePixKey, normalizePixText } from "./pix";
+
 export const PRODUCT_VISIBILITIES = ["public", "members"] as const;
 export const PRODUCT_VISIBILITY_LABELS = {
   public: "Público: qualquer visitante vê o produto e o preço",
@@ -19,7 +21,7 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
 };
 /** Próximos status permitidos (espelha a regra do banco). */
 export const NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
-  requested: ["confirmed", "cancelled"],
+  requested: ["confirmed", "paid", "cancelled"],
   confirmed: ["paid", "cancelled"],
   paid: ["delivered", "cancelled"],
   delivered: [],
@@ -74,12 +76,45 @@ export const productSchema = z.object({
   isAvailable: z.boolean(),
 });
 
-export const orderSchema = z.object({
+/** Adicionar ao carrinho. */
+export const addToCartSchema = z.object({
   productId: z.uuid(),
   quantity: z.coerce.number().int("Use um número inteiro.").min(1, "Mínimo 1.").max(20, "Máximo 20."),
   size: z.string().trim().max(12),
-  note: optionalText(300, "Use até 300 caracteres."),
 });
+
+export const cartLineFormSchema = z.object({
+  productId: z.uuid(),
+  size: z.string().trim().max(12),
+  quantity: z.coerce.number().int("Use um número inteiro.").min(0, "Mínimo 0.").max(20, "Máximo 20."),
+});
+
+export const checkoutSchema = z.object({ note: optionalText(300, "Use até 300 caracteres.") });
+
+/** Chave PIX da loja. Em branco desliga o QR code. */
+export const pixSettingsSchema = z
+  .object({
+    pixKey: z.string().trim().max(120),
+    receiver: z.string().trim().max(60),
+    city: z.string().trim().max(40),
+  })
+  .transform((value, ctx) => {
+    if (value.pixKey === "") return { pixKey: null, receiver: null, city: null };
+    const key = normalizePixKey(value.pixKey);
+    if (!key) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["pixKey"],
+        message: "Chave inválida. Use e-mail, celular com +55, CPF, CNPJ ou chave aleatória.",
+      });
+      return z.NEVER;
+    }
+    const receiver = normalizePixText(value.receiver, 25);
+    const city = normalizePixText(value.city, 15);
+    if (!receiver) ctx.addIssue({ code: "custom", path: ["receiver"], message: "Informe o nome do recebedor." });
+    if (!city) ctx.addIssue({ code: "custom", path: ["city"], message: "Informe a cidade." });
+    return { pixKey: key, receiver, city };
+  });
 
 export const statusSchema = z.object({
   orderId: z.uuid(),

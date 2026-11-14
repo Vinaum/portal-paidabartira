@@ -10,8 +10,19 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-import { SHOP_BUCKET, isShopManager } from "./queries";
-import { managerSchema, orderIdSchema, orderSchema, productSchema, statusSchema } from "./schemas";
+import { addLine, removeLine, setLineQuantity } from "./cart-lines";
+import { readCart, writeCart } from "./cart";
+import { SHOP_BUCKET, getProduct, isShopManager } from "./queries";
+import {
+  addToCartSchema,
+  cartLineFormSchema,
+  checkoutSchema,
+  managerSchema,
+  orderIdSchema,
+  pixSettingsSchema,
+  productSchema,
+  statusSchema,
+} from "./schemas";
 
 const text = (formData: FormData, name: string) => String(formData.get(name) ?? "");
 
@@ -128,27 +139,90 @@ export async function saveProductPhoto(_previous: FormState, formData: FormData)
   return { status: "success", message: "Foto atualizada." };
 }
 
-export async function requestOrder(_previous: FormState, formData: FormData): Promise<FormState> {
+/** Coloca o produto no carrinho (cookie) e leva para o carrinho. */
+export async function addToCart(_previous: FormState, formData: FormData): Promise<FormState> {
   await requireActiveMember();
-  const values = {
-    productId: text(formData, "productId"),
-    quantity: text(formData, "quantity"),
-    size: text(formData, "size"),
-    note: text(formData, "note"),
-  };
-  const parsed = orderSchema.safeParse(values);
+  const values = { productId: text(formData, "productId"), quantity: text(formData, "quantity"), size: text(formData, "size") };
+  const parsed = addToCartSchema.safeParse(values);
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrorsFrom(parsed.error), values };
+  const { productId, quantity, size } = parsed.data;
+
+  // O preço e a disponibilidade vêm do banco; o cookie só guarda produto, tamanho e quantidade.
+  const product = await getProduct(productId);
+  if (!product || !product.is_published) return { status: "error", message: "Produto não encontrado.", values };
+  if (!product.is_available) return { status: "error", message: "Este produto está esgotado.", values };
+  let chosen = "";
+  if (product.sizes.length > 0) {
+    if (!product.sizes.includes(size)) return { status: "error", fieldErrors: { size: "Escolha um tamanho." }, values };
+    chosen = size;
+  }
+  await writeCart(addLine(await readCart(), { p: productId, s: chosen, q: quantity }));
+  redirect("/carrinho");
+}
+
+export async function updateCartLine(_previous: FormState, formData: FormData): Promise<FormState> {
+  await requireActiveMember();
+  const parsed = cartLineFormSchema.safeParse({
+    productId: text(formData, "productId"),
+    size: text(formData, "size"),
+    quantity: text(formData, "quantity"),
+  });
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrorsFrom(parsed.error) };
+  await writeCart(setLineQuantity(await readCart(), parsed.data.productId, parsed.data.size, parsed.data.quantity));
+  revalidatePath("/carrinho");
+  return { status: "success" };
+}
+
+export async function removeCartLine(_previous: FormState, formData: FormData): Promise<FormState> {
+  await requireActiveMember();
+  const parsed = cartLineFormSchema.safeParse({
+    productId: text(formData, "productId"),
+    size: text(formData, "size"),
+    quantity: "1",
+  });
+  if (!parsed.success) return { status: "error", message: "Item inválido." };
+  await writeCart(removeLine(await readCart(), parsed.data.productId, parsed.data.size));
+  revalidatePath("/carrinho");
+  return { status: "success" };
+}
+
+/** Transforma o carrinho em um pedido; o banco confere preço, tamanho e disponibilidade. */
+export async function checkout(_previous: FormState, formData: FormData): Promise<FormState> {
+  await requireActiveMember();
+  const values = { note: text(formData, "note") };
+  const parsed = checkoutSchema.safeParse(values);
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrorsFrom(parsed.error), values };
+  const lines = await readCart();
+  if (lines.length === 0) return { status: "error", message: "O carrinho está vazio.", values };
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("shop_request_order", {
-    p_product_id: parsed.data.productId,
-    p_quantity: parsed.data.quantity,
-    p_size: parsed.data.size,
+  const { data, error } = await supabase.rpc("shop_checkout", {
+    p_items: lines.map((line) => ({ product_id: line.p, quantity: line.q, size: line.s })),
     p_note: parsed.data.note ?? "",
+  });
+  if (error || typeof data !== "string") return { status: "error", message: friendly(error ?? {}), values };
+  await writeCart([]);
+  revalidateShop();
+  redirect(`/pedidos/${data}?novo=1`);
+}
+
+export async function saveShopPix(_previous: FormState, formData: FormData): Promise<FormState> {
+  await requirePermission(PERMISSIONS.storeManage);
+  const values = { pixKey: text(formData, "pixKey"), receiver: text(formData, "receiver"), city: text(formData, "city") };
+  const parsed = pixSettingsSchema.safeParse(values);
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrorsFrom(parsed.error), values };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("shop_set_pix", {
+    p_key: parsed.data.pixKey ?? "",
+    p_receiver: parsed.data.receiver ?? "",
+    p_city: parsed.data.city ?? "",
   });
   if (error) return { status: "error", message: friendly(error), values };
   revalidateShop();
-  redirect("/pedidos?novo=1");
+  return {
+    status: "success",
+    message: parsed.data.pixKey ? "PIX da loja salvo. Confira o QR code em um pedido de teste." : "PIX da loja desligado.",
+  };
 }
 
 export async function cancelOrder(_previous: FormState, formData: FormData): Promise<FormState> {

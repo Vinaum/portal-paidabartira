@@ -8,9 +8,11 @@ import { Notice } from "@/components/ui/notice";
 import { Stamp } from "@/components/ui/seal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { formatBRL } from "@/features/caixinha/money";
+import { orderCode } from "@/features/loja/pix";
 import { OrderStatusForm } from "@/features/loja/components/order-forms";
+import { ShopPixForm } from "@/features/loja/components/cart-forms";
 import { AddShopManagerForm, RemoveShopManagerForm } from "@/features/loja/components/manager-forms";
-import { isShopManager, listMemberOptions, listOrders, listShopManagers } from "@/features/loja/queries";
+import { getShopPix, isShopManager, listMemberOptions, listOrders, listShopManagers } from "@/features/loja/queries";
 import { ORDER_STATUSES, ORDER_STATUS_LABELS } from "@/features/loja/schemas";
 import { requireActiveMember } from "@/lib/auth/session";
 import { formatDay } from "@/lib/format";
@@ -24,10 +26,11 @@ export default async function ShopAdminPage({ searchParams }: PageProps<"/pedido
   if (!(await isShopManager(isAdmin))) redirect("/pedidos");
   const { status } = await searchParams;
   const filter = typeof status === "string" && (ORDER_STATUSES as readonly string[]).includes(status) ? status : undefined;
-  const [orders, managers, options] = await Promise.all([
+  const [orders, managers, options, pix] = await Promise.all([
     listOrders(filter),
     isAdmin ? listShopManagers() : Promise.resolve([]),
     isAdmin ? listMemberOptions() : Promise.resolve([]),
+    isAdmin ? getShopPix() : Promise.resolve(null),
   ]);
   const managerIds = new Set(managers.map((manager) => manager.member_id));
 
@@ -57,13 +60,20 @@ export default async function ShopAdminPage({ searchParams }: PageProps<"/pedido
               <Card className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h2 className="text-xl font-semibold">
-                    {order.member_name}: {order.quantity} × {order.product_name}
-                    {order.size ? ` (${order.size})` : ""}
+                    {order.member_name} · {orderCode(order.id)}
                   </h2>
                   <Stamp tone={order.status === "cancelled" ? "vinho" : "verde"}>{ORDER_STATUS_LABELS[order.status]}</Stamp>
                 </div>
+                <ul className="list-disc pl-6">
+                  {order.items.map((item, index) => (
+                    <li key={index}>
+                      {item.quantity} × {item.product_name}
+                      {item.size ? ` (${item.size})` : ""}
+                    </li>
+                  ))}
+                </ul>
                 <p>
-                  Total: <strong>{formatBRL(order.unit_price_cents * order.quantity)}</strong> · {formatDay(order.created_at.slice(0, 10))}
+                  Total: <strong>{formatBRL(order.total_cents)}</strong> · {formatDay(order.created_at.slice(0, 10))}
                 </p>
                 {order.note ? <p>Observação: {order.note}</p> : null}
                 {order.manager_note ? <p>Seu recado: {order.manager_note}</p> : null}
@@ -73,6 +83,17 @@ export default async function ShopAdminPage({ searchParams }: PageProps<"/pedido
           ))}
         </ul>
       )}
+
+      {isAdmin ? (
+        <Card className="flex flex-col gap-4">
+          <h2 className="text-2xl font-semibold">PIX da loja</h2>
+          <p>
+            Uma chave só, usada no QR code de todos os pedidos. Hoje é de uma pessoa; quando existir a Associação,
+            troque pela chave dela. {pix ? "QR code ligado." : "QR code desligado."}
+          </p>
+          <ShopPixForm current={pix} />
+        </Card>
+      ) : null}
 
       {isAdmin ? (
         <Card className="flex flex-col gap-4">

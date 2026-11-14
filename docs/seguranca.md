@@ -186,3 +186,21 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - Auditoria: ids, visibilidade e ocultação; nunca título, descrição ou legenda.
 - Risco aceito: um álbum público com foto enviada por outro integrante expõe quem aparece nela.
   Mitigação: aviso no formulário, moderação e remoção pelo contato da política.
+
+## Loja: carrinho e PIX
+
+- Pedido com vários itens: `shop_orders` (cabeçalho, status, total) e `shop_order_items` (nome e
+  preço "congelados"). Só são criados por `shop_checkout`, função que relê produto, preço,
+  tamanho e disponibilidade no banco; nada vem confiável do navegador. Os pedidos antigos foram
+  copiados pela migration (mesmo id) e `product_orders` foi removida.
+- Carrinho: cookie `pdbt_cart` (httpOnly, SameSite=Lax, 30 dias) com produto, tamanho e quantidade,
+  validado com Zod a cada leitura. Preço e disponibilidade são lidos do banco ao exibir e ao
+  finalizar. Cookie adulterado vira carrinho vazio.
+- PIX: a chave fica em `shop_settings` (uma só, lida por integrantes ativos e responsáveis, alterada
+  só com `store.manage`, auditoria sem a chave). O QR é gerado no servidor (`pix.ts`, BR Code
+  estático com CRC16) e não há retorno de pagamento: quem gerencia a loja confere o PIX no banco e
+  marca o pedido como pago (`requested -> paid` é permitido).
+- Risco aceito: quem tem `store.manage` pode trocar a chave e desviar pagamentos. Mitigação: só
+  administração, trilha de auditoria da troca e aviso na tela. Chave de pessoa física até existir
+  a Associação.
+- Versão `2026-11-14.2` da política: cookie do carrinho e QR do PIX.

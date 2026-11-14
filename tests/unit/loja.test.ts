@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { NEXT_STATUSES, orderSchema, parseSizes, productSchema } from "@/features/loja/schemas";
+import { NEXT_STATUSES, addToCartSchema, parseSizes, pixSettingsSchema, productSchema } from "@/features/loja/schemas";
 
 describe("parseSizes", () => {
   it("separa por vírgula, apara e remove repetidos", () => {
@@ -26,16 +26,34 @@ describe("productSchema", () => {
   });
 });
 
-describe("orderSchema", () => {
+describe("addToCartSchema", () => {
   const id = "11111111-1111-4111-8111-111111111111";
   it("limita a quantidade", () => {
-    expect(orderSchema.safeParse({ productId: id, quantity: "2", size: "", note: "" }).success).toBe(true);
-    expect(orderSchema.safeParse({ productId: id, quantity: "0", size: "", note: "" }).success).toBe(false);
-    expect(orderSchema.safeParse({ productId: id, quantity: "21", size: "", note: "" }).success).toBe(false);
+    expect(addToCartSchema.safeParse({ productId: id, quantity: "2", size: "" }).success).toBe(true);
+    expect(addToCartSchema.safeParse({ productId: id, quantity: "0", size: "" }).success).toBe(false);
+    expect(addToCartSchema.safeParse({ productId: id, quantity: "21", size: "" }).success).toBe(false);
+  });
+});
+
+describe("pixSettingsSchema", () => {
+  it("em branco desliga o QR code", () => {
+    expect(pixSettingsSchema.parse({ pixKey: "", receiver: "", city: "" })).toEqual({ pixKey: null, receiver: null, city: null });
+  });
+  it("normaliza nome e cidade para o padrão do PIX", () => {
+    const parsed = pixSettingsSchema.parse({ pixKey: "Casa@Example.com", receiver: "República Paidabartira", city: "São Paulo" });
+    expect(parsed).toEqual({ pixKey: "casa@example.com", receiver: "REPUBLICA PAIDABARTIRA", city: "SAO PAULO" });
+  });
+  it("exige recebedor, cidade e chave válida", () => {
+    expect(pixSettingsSchema.safeParse({ pixKey: "casa@example.com", receiver: "", city: "Campinas" }).success).toBe(false);
+    expect(pixSettingsSchema.safeParse({ pixKey: "casa@example.com", receiver: "Casa", city: "" }).success).toBe(false);
+    expect(pixSettingsSchema.safeParse({ pixKey: "não é chave", receiver: "Casa", city: "Campinas" }).success).toBe(false);
   });
 });
 
 describe("NEXT_STATUSES", () => {
+  it("pedido solicitado pode ir direto para pago", () => {
+    expect(NEXT_STATUSES.requested).toContain("paid");
+  });
   it("estados finais não têm saída", () => {
     expect(NEXT_STATUSES.delivered).toEqual([]);
     expect(NEXT_STATUSES.cancelled).toEqual([]);

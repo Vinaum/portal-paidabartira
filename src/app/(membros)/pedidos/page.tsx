@@ -7,7 +7,7 @@ import { Notice } from "@/components/ui/notice";
 import { Stamp } from "@/components/ui/seal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { formatBRL } from "@/features/caixinha/money";
-import { CancelOrderForm } from "@/features/loja/components/order-forms";
+import { orderCode } from "@/features/loja/pix";
 import { isShopManager, listMyOrders } from "@/features/loja/queries";
 import { ORDER_STATUS_LABELS } from "@/features/loja/schemas";
 import { requireActiveMember } from "@/lib/auth/session";
@@ -29,9 +29,10 @@ export default async function MyOrdersPage({ searchParams }: PageProps<"/pedidos
       <SectionHeading as="h1" kicker="Loja" title="Meus pedidos" />
       <div className="flex flex-wrap gap-3">
         <ButtonLink href="/loja" variant="outline">Ver a loja</ButtonLink>
+        <ButtonLink href="/carrinho" variant="outline">Carrinho</ButtonLink>
         {canManage ? <ButtonLink href="/pedidos/gestao">Gerenciar loja</ButtonLink> : null}
       </div>
-      {novo === "1" ? <Notice tone="success">Pedido enviado. A tesouraria vai confirmar e combinar o pagamento.</Notice> : null}
+      {novo === "1" ? <Notice tone="success">Pedido enviado.</Notice> : null}
       {orders.length === 0 ? (
         <Notice>
           Você ainda não fez pedidos. <Link href="/loja" className="font-semibold underline">Veja a loja</Link>.
@@ -43,23 +44,26 @@ export default async function MyOrdersPage({ searchParams }: PageProps<"/pedidos
               <Card className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h2 className="text-xl font-semibold">
-                    {order.quantity} × {order.product_name}
-                    {order.size ? ` (${order.size})` : ""}
+                    <Link href={`/pedidos/${order.id}`} className="underline-offset-4 hover:underline">
+                      Pedido {orderCode(order.id)}
+                    </Link>
                   </h2>
                   <Stamp tone={order.status === "cancelled" ? "vinho" : "verde"}>{ORDER_STATUS_LABELS[order.status]}</Stamp>
                 </div>
                 <p>
-                  Total: <strong>{formatBRL(order.unit_price_cents * order.quantity)}</strong> · pedido em{" "}
-                  {formatDay(order.created_at.slice(0, 10))}
+                  {order.shop_order_items.map((item) => `${item.quantity} × ${item.product_name}${item.size ? ` (${item.size})` : ""}`).join(", ")}
                 </p>
-                {order.note ? <p>Sua observação: {order.note}</p> : null}
+                <p>
+                  Total: <strong>{formatBRL(order.total_cents)}</strong> · pedido em {formatDay(order.created_at.slice(0, 10))}
+                </p>
                 {order.manager_note ? <p>Recado da tesouraria: {order.manager_note}</p> : null}
-                {order.payment_instructions && (order.status === "requested" || order.status === "confirmed") ? (
-                  <p className="rounded-sm border-2 border-dashed border-sepia bg-creme p-3 whitespace-pre-line">
-                    Como pagar: {order.payment_instructions}
+                {order.status === "requested" || order.status === "confirmed" ? (
+                  <p>
+                    <Link href={`/pedidos/${order.id}`} className="font-semibold underline underline-offset-4">
+                      Pagar com PIX
+                    </Link>
                   </p>
                 ) : null}
-                {order.status === "requested" ? <CancelOrderForm orderId={order.id} /> : null}
               </Card>
             </li>
           ))}

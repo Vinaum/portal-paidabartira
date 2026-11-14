@@ -56,25 +56,35 @@ export async function getProduct(id: string): Promise<Product | null> {
   return (await withPhotos([productRow.parse(data)]))[0] ?? null;
 }
 
-const myOrderRow = z.object({
-  id: z.uuid(),
+const itemRow = z.object({
   product_name: z.string(),
   unit_price_cents: z.number(),
   quantity: z.number(),
   size: z.string().nullable(),
+});
+export type OrderItem = z.infer<typeof itemRow>;
+
+const myOrderRow = z.object({
+  id: z.uuid(),
+  status: z.enum(ORDER_STATUSES),
+  total_cents: z.number(),
   note: z.string().nullable(),
   payment_instructions: z.string().nullable(),
-  status: z.enum(ORDER_STATUSES),
   manager_note: z.string().nullable(),
   created_at: z.string(),
+  shop_order_items: z.array(itemRow),
 });
 export type MyOrder = z.infer<typeof myOrderRow>;
 
+const ORDER_COLUMNS =
+  "id, status, total_cents, note, payment_instructions, manager_note, created_at, shop_order_items(product_name, unit_price_cents, quantity, size)";
+
+/** Pedidos de uma pessoa (a RLS já limita ao dono ou a quem gerencia a loja). */
 export async function listMyOrders(memberId: string): Promise<MyOrder[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("product_orders")
-    .select("id, product_name, unit_price_cents, quantity, size, note, payment_instructions, status, manager_note, created_at")
+    .from("shop_orders")
+    .select(ORDER_COLUMNS)
     .eq("member_id", memberId)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -82,17 +92,23 @@ export async function listMyOrders(memberId: string): Promise<MyOrder[]> {
   return z.array(myOrderRow).parse(data ?? []);
 }
 
+export async function getMyOrder(id: string, memberId: string): Promise<MyOrder | null> {
+  if (!z.uuid().safeParse(id).success) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("shop_orders").select(ORDER_COLUMNS).eq("id", id).eq("member_id", memberId).maybeSingle();
+  if (error) throw new Error(`Falha ao ler o pedido: ${error.message}`);
+  return data ? myOrderRow.parse(data) : null;
+}
+
 const managedOrderRow = z.object({
   id: z.uuid(),
   member_name: z.string(),
-  product_name: z.string(),
-  unit_price_cents: z.number(),
-  quantity: z.number(),
-  size: z.string().nullable(),
-  note: z.string().nullable(),
   status: z.enum(ORDER_STATUSES),
+  total_cents: z.number(),
+  note: z.string().nullable(),
   manager_note: z.string().nullable(),
   created_at: z.string(),
+  items: z.array(itemRow),
 });
 export type ManagedOrder = z.infer<typeof managedOrderRow>;
 
@@ -102,6 +118,28 @@ export async function listOrders(status?: string): Promise<ManagedOrder[]> {
   const { data, error } = await supabase.rpc("shop_list_orders", { p_status: parsed.success ? parsed.data : undefined });
   if (error) throw new Error(`Falha ao ler os pedidos: ${error.message}`);
   return z.array(managedOrderRow).parse(data ?? []);
+}
+
+const pixRow = z.object({ pix_key: z.string().nullable(), pix_receiver: z.string().nullable(), pix_city: z.string().nullable() });
+export type ShopPix = { key: string; receiver: string; city: string };
+
+/** PIX da loja, se configurado (integrantes ativos e responsáveis leem; a RLS decide). */
+export async function getShopPix(): Promise<ShopPix | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("shop_settings").select("pix_key, pix_receiver, pix_city").maybeSingle();
+  if (error) throw new Error(`Falha ao ler o PIX da loja: ${error.message}`);
+  const row = data ? pixRow.parse(data) : null;
+  return row?.pix_key && row.pix_receiver && row.pix_city ? { key: row.pix_key, receiver: row.pix_receiver, city: row.pix_city } : null;
+}
+
+/** Produtos por id, só os que a RLS libera (para montar o carrinho com preço atual). */
+export async function getProductsByIds(ids: string[]): Promise<Product[]> {
+  const valid = [...new Set(ids)].filter((id) => z.uuid().safeParse(id).success);
+  if (valid.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("products").select(COLUMNS).in("id", valid);
+  if (error) throw new Error(`Falha ao ler os produtos: ${error.message}`);
+  return withPhotos(z.array(productRow).parse(data ?? []));
 }
 
 /** Quem gerencia a loja: permissão `store.manage` (informada por quem chama) ou responsável designado. */

@@ -9,7 +9,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Stamp } from "@/components/ui/seal";
 import { formatBRL } from "@/features/caixinha/money";
 import { ProductPhoto } from "@/features/loja/components/product-card";
-import { OrderForm } from "@/features/loja/components/order-forms";
+import { AddToCartForm } from "@/features/loja/components/cart-forms";
 import { getProduct } from "@/features/loja/queries";
 import { getCurrentMember } from "@/lib/auth/session";
 
@@ -55,17 +55,22 @@ async function Product({ params }: { params: PageProps<"/loja/[id]">["params"] }
         <Notice>Este produto está esgotado.</Notice>
       ) : isMember ? (
         <Card className="flex flex-col gap-4">
-          <h2 className="text-2xl font-semibold">Fazer pedido</h2>
-          <p>O pagamento não é feito aqui: depois do pedido, a tesouraria confirma e combina o PIX com você.</p>
-          <OrderForm productId={product.id} sizes={product.sizes} />
+          <h2 className="text-2xl font-semibold">Comprar</h2>
+          <p>Adicione ao carrinho, finalize o pedido e pague com o QR code do PIX. A tesouraria confere o pagamento e entrega.</p>
+          <AddToCartForm productId={product.id} sizes={product.sizes} />
+          <p>
+            <Link href="/carrinho" className="font-semibold underline underline-offset-4">
+              Ver o carrinho
+            </Link>
+          </p>
         </Card>
       ) : (
         <Notice>
-          Pedidos são feitos por integrantes.{" "}
+          Compras são feitas por integrantes.{" "}
           <Link href="/login" className="font-semibold underline">
             Entre
           </Link>{" "}
-          para pedir.
+          para comprar.
         </Notice>
       )}
     </div>

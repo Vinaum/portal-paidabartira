@@ -6,6 +6,7 @@ import { formatBRL } from "@/features/caixinha/money";
 import { listFundOverviews } from "@/features/caixinha/queries";
 import { StoryCard } from "@/features/historias/components/story-card";
 import { listStories } from "@/features/historias/queries";
+import { orderCode } from "@/features/loja/pix";
 import { listMyOrders } from "@/features/loja/queries";
 import { ORDER_STATUS_LABELS } from "@/features/loja/schemas";
 import type { Permission } from "@/lib/permissions";
@@ -121,10 +122,9 @@ export async function MyOrdersSummary({ memberId }: { memberId: string }) {
       <ul className="flex flex-col gap-2">
         {open.map((order) => (
           <li key={order.id} className="flex flex-wrap items-baseline justify-between gap-2">
-            <span>
-              {order.quantity} × {order.product_name}
-              {order.size ? ` (${order.size})` : ""}
-            </span>
+            <Link href={`/pedidos/${order.id}`} className="underline underline-offset-4">
+              Pedido {orderCode(order.id)} · {formatBRL(order.total_cents)}
+            </Link>
             <Stamp tone="verde">{ORDER_STATUS_LABELS[order.status]}</Stamp>
           </li>
         ))}

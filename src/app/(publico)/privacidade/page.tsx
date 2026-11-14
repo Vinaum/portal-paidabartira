@@ -80,8 +80,9 @@ export default function PrivacyPage() {
             <strong>Agenda:</strong> a sua resposta (vou, talvez, não vou) aos eventos.
           </li>
           <li>
-            <strong>Loja:</strong> os pedidos que você fizer (produto, quantidade, tamanho, observação e andamento).
-            O pagamento é combinado fora do portal; não guardamos dados de cartão nem de conta bancária.
+            <strong>Loja:</strong> os pedidos que você fizer (itens, quantidades, tamanhos, valor, observação e andamento).
+            O portal mostra o QR code do PIX da loja; o pagamento acontece no seu banco. Não guardamos dados de cartão
+            nem de conta bancária, e a conferência do PIX é feita à mão por quem cuida da loja.
           </li>
           <li>
             <strong>Caixinha:</strong> o portal <em>não registra quem contribuiu</em>. Os lançamentos têm valor,
@@ -150,7 +151,8 @@ export default function PrivacyPage() {
         <p>
           O banco de dados e os arquivos ficam no Supabase, em servidores na região de São Paulo. O site é servido
           pela Vercel. Não vendemos nem compartilhamos dados com terceiros para publicidade, e o portal não usa
-          cookies de rastreamento: os únicos cookies são os da sua sessão de login.
+          cookies de rastreamento: os únicos cookies são os da sua sessão de login e o do carrinho da loja, que guarda apenas quais produtos você
+          escolheu e fica no seu navegador por até 30 dias.
         </p>
       </section>
 
@@ -204,7 +206,7 @@ export default function PrivacyPage() {
         </p>
       </section>
 
-      <p className="rotulo text-sepia-escuro">Versão {POLICY_VERSION} · 14 de novembro de 2026</p>
+      <p className="rotulo text-sepia-escuro">Versão {POLICY_VERSION} · 15 de novembro de 2026</p>
     </article>
   );
 }

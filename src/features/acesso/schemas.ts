@@ -3,7 +3,7 @@ import { z } from "zod";
 import { MEMBER_CATEGORIES, MEMBER_ROLES } from "@/lib/permissions";
 
 /** Versão vigente da política de privacidade (tabela privacy_policy_versions). */
-export const POLICY_VERSION = "2026-11-14";
+export const POLICY_VERSION = "2026-11-14.2";
 
 export const REQUEST_STATUSES = [
   "pending",

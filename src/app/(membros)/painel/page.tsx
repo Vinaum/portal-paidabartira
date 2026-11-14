@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Notice } from "@/components/ui/notice";
 import { Seal } from "@/components/ui/seal";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { AnnouncementCard } from "@/features/comunicados/components/announcement-card";
+import { listAnnouncements } from "@/features/comunicados/queries";
 import { EventCard } from "@/features/eventos/components/event-card";
 import { listEvents } from "@/features/eventos/queries";
 import { requireActiveMember } from "@/lib/auth/session";
@@ -18,7 +19,10 @@ export const metadata: Metadata = { title: "Painel" };
  */
 export default async function DashboardPage() {
   const member = await requireActiveMember();
-  const nextEvents = await listEvents({ scope: "upcoming", limit: 3 });
+  const [nextEvents, announcements] = await Promise.all([
+    listEvents({ scope: "upcoming", limit: 3 }),
+    listAnnouncements(3),
+  ]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -67,7 +71,25 @@ export default async function DashboardPage() {
         )}
       </Card>
 
-      <Notice>A caixinha chega na próxima entrega.</Notice>
+      <Card className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold">Comunicados</h2>
+          <ButtonLink href="/comunicados" variant="outline">
+            Ver todos
+          </ButtonLink>
+        </div>
+        {announcements.length === 0 ? (
+          <p>Nenhum comunicado no momento.</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {announcements.map((announcement) => (
+              <li key={announcement.id}>
+                <AnnouncementCard announcement={announcement} full={false} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }

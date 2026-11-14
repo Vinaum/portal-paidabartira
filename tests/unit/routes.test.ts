@@ -10,7 +10,7 @@ describe("isProtectedPath", () => {
   });
 
   it("não protege o portal público nem rotas de nome parecido", () => {
-    for (const path of ["/", "/login", "/eventos", "/caixinha", "/administracao", "/painel-publico"]) {
+    for (const path of ["/", "/login", "/eventos", "/caixinha", "/loja", "/loja/abc", "/comunicados", "/administracao", "/painel-publico"]) {
       expect(isProtectedPath(path)).toBe(false);
     }
   });

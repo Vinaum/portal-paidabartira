@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { deleteAccountSchema, resolveRequestSchema, setRoleSchema, updateMemberSchema } from "./schemas";
 
-const BUCKET = "member-media";
+const BUCKETS = ["member-media", "story-media"] as const;
 // ~100 anos: o Auth só aceita duração, não "para sempre".
 const BAN_DURATION = "876000h";
 
@@ -115,14 +115,14 @@ export async function resolveDataRequest(_previous: FormState, formData: FormDat
 }
 
 /** Apaga todos os arquivos de uma pasta do bucket, descendo nas subpastas. */
-async function removeFolder(prefix: string): Promise<boolean> {
-  const storage = createAdminClient().storage.from(BUCKET);
+async function removeFolder(bucket: string, prefix: string): Promise<boolean> {
+  const storage = createAdminClient().storage.from(bucket);
   const { data, error } = await storage.list(prefix, { limit: 1000 });
   if (error) return false;
   const files: string[] = [];
   for (const item of data ?? []) {
     if (item.id) files.push(`${prefix}/${item.name}`);
-    else if (!(await removeFolder(`${prefix}/${item.name}`))) return false;
+    else if (!(await removeFolder(bucket, `${prefix}/${item.name}`))) return false;
   }
   if (files.length === 0) return true;
   const { error: removeError } = await storage.remove(files);
@@ -155,7 +155,8 @@ export async function executeAccountDeletion(_previous: FormState, formData: For
     return { status: "error", message: errorMessage(error?.code) };
   }
 
-  if (!(await removeFolder(memberId))) {
+  const cleaned = await Promise.all(BUCKETS.map((bucket) => removeFolder(bucket, memberId)));
+  if (cleaned.includes(false)) {
     return {
       status: "error",
       message: "Não foi possível apagar os arquivos da pessoa. Nada mais foi apagado; tente de novo.",

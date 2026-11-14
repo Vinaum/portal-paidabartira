@@ -21,6 +21,7 @@ export default async function AdminHomePage() {
   const canReview = member.permissions.includes(PERMISSIONS.requestsReview);
   const canManageEvents = member.permissions.includes(PERMISSIONS.eventsManage);
   const canManageFinance = member.permissions.includes(PERMISSIONS.financeWrite);
+  const canPublish = member.permissions.includes(PERMISSIONS.announcementsPublish);
   const canManageStore = member.permissions.includes(PERMISSIONS.storeManage);
   const canManageMembers = member.permissions.includes(PERMISSIONS.membersManage);
   const canHandlePrivacy = member.permissions.includes(PERMISSIONS.privacyHandle);
@@ -71,6 +72,18 @@ export default async function AdminHomePage() {
           </div>
           <ButtonLink href="/financeiro" variant="dark">
             Abrir caixinhas
+          </ButtonLink>
+        </Card>
+      ) : null}
+
+      {canPublish ? (
+        <Card className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold">Comunicados</h2>
+            <p>Avisos para integrantes ou para o público, com opção de fixar e de data de validade.</p>
+          </div>
+          <ButtonLink href="/admin/comunicados" variant="dark">
+            Abrir comunicados
           </ButtonLink>
         </Card>
       ) : null}

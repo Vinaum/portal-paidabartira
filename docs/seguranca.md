@@ -126,6 +126,15 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - **Auditoria** de produtos, pedidos e responsáveis, sem texto livre dos pedidos.
 - **Limitação.** Produto "só para quem já morou ou é agregado" hoje vira "só integrantes" (inclui moradores atuais). Restringir por categoria é uma coluna a mais, se necessário.
 
+## Comunicados e histórias
+
+- **Comunicados.** Publica quem tem `announcements.publish` (administrador e moderador). Cada comunicado é `public` ou `members`, pode ser fixado e ter validade; depois da validade some para leitores (quem publica ainda vê). Criar, editar e apagar vão para a auditoria (título, sem o texto).
+- **Histórias.** Só integrante ativo lê e escreve; publica na hora e a moderação (`stories.moderate`) oculta depois, com motivo visível ao autor. Autor edita e apaga a sua; moderador não edita texto alheio. Ocultas somem para os demais e não aceitam comentários.
+- **Fotos de histórias.** Até 4, bucket privado `story-media`, caminho `autor/história/arquivo.webp`; o servidor re-encoda em WebP (sem GPS) e entrega URLs assinadas de 1 h de histórias que a RLS liberou. A exclusão de conta (LGPD) apaga as pastas da pessoa nos dois buckets (`member-media` e `story-media`) e as histórias e comentários dela saem junto.
+- **Nomes.** Autor e comentaristas aparecem pelo nome de exibição (`member_names`, só para integrantes ativos), mesmo se a pessoa se esconde do diretório: quem escreve numa história escolhe assinar.
+- **Auditoria.** Criação, exclusão, ocultação e reexibição de histórias e remoção de comentário por moderador registram só ids, nunca o texto.
+- **Limitações.** Não há limite de taxa nos comentários nem denúncia pelos leitores; a moderação depende de quem tem a permissão. Edição de comentário não existe (apaga e escreve de novo).
+
 ## O que ainda não está coberto
 
 - Política de Segurança de Conteúdo (CSP) estrita. Entram hoje os cabeçalhos básicos

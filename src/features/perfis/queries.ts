@@ -29,6 +29,7 @@ const socialSchema = z.object({
   github_url: text,
   other_url: text,
 });
+const birthdaySchema = z.object({ birth_day: z.number(), birth_month: z.number() });
 const emailsSchema = z.object({ official_email: text });
 const phoneSchema = z.object({ phone: text, whatsapp: text });
 const addressSchema = z.object({
@@ -62,6 +63,7 @@ export type OwnProfile = {
   profile: z.infer<typeof profileSchema>;
   periods: z.infer<typeof periodSchema>[];
   social: z.infer<typeof socialSchema> | null;
+  birthday: z.infer<typeof birthdaySchema> | null;
   emails: z.infer<typeof emailsSchema> | null;
   phone: z.infer<typeof phoneSchema> | null;
   address: z.infer<typeof addressSchema> | null;
@@ -76,13 +78,14 @@ export async function getOwnProfile(memberId: string): Promise<OwnProfile> {
   const own = <T extends string>(table: T, columns: string) =>
     supabase.from(table).select(columns).eq("member_id", memberId);
 
-  const [profile, periods, social, emails, phone, address, professional, education, privacy] = await Promise.all([
+  const [profile, periods, social, birthday, emails, phone, address, professional, education, privacy] = await Promise.all([
     own(
       "profiles",
       "full_name, display_name, nickname, bio, origin_city, origin_state, origin_country, current_city, current_country, show_on_public_portal",
     ).single(),
     own("residency_periods", "id, started_on, ended_on").order("started_on", { ascending: true }),
     own("profile_social", "linkedin_url, instagram_url, facebook_url, x_url, github_url, other_url").maybeSingle(),
+    own("profile_birthday", "birth_day, birth_month").maybeSingle(),
     own("profile_emails", "official_email").maybeSingle(),
     own("profile_phone", "phone, whatsapp").maybeSingle(),
     own("profile_address", "street, complement, district, city, state, postal_code, country").maybeSingle(),
@@ -94,7 +97,7 @@ export async function getOwnProfile(memberId: string): Promise<OwnProfile> {
     own("profile_privacy", "section, visibility"),
   ]);
 
-  for (const result of [profile, periods, social, emails, phone, address, professional, education, privacy]) {
+  for (const result of [profile, periods, social, birthday, emails, phone, address, professional, education, privacy]) {
     if (result.error) throw new Error(`Falha ao ler o perfil: ${result.error.message}`);
   }
 
@@ -109,6 +112,7 @@ export async function getOwnProfile(memberId: string): Promise<OwnProfile> {
     profile: profileSchema.parse(profile.data),
     periods: z.array(periodSchema).parse(periods.data),
     social: social.data ? socialSchema.parse(social.data) : null,
+    birthday: birthday.data ? birthdaySchema.parse(birthday.data) : null,
     emails: emails.data ? emailsSchema.parse(emails.data) : null,
     phone: phone.data ? phoneSchema.parse(phone.data) : null,
     address: address.data ? addressSchema.parse(address.data) : null,

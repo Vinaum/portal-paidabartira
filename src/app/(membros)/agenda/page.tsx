@@ -3,9 +3,13 @@ import Link from "next/link";
 
 import { Notice } from "@/components/ui/notice";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { BirthdayCard } from "@/features/aniversarios/components/birthday-card";
+import { dayInBrasilia, upcomingBirthdays } from "@/features/aniversarios/dates";
+import { listBirthdays } from "@/features/aniversarios/queries";
 import { EventCard } from "@/features/eventos/components/event-card";
 import { listEvents } from "@/features/eventos/queries";
 import { requireActiveMember } from "@/lib/auth/session";
+import { todayInBrasilia } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Agenda" };
 
@@ -14,6 +18,13 @@ export default async function AgendaPage({ searchParams }: PageProps<"/agenda">)
   const { passados } = await searchParams;
   const past = passados === "1";
   const events = await listEvents({ scope: past ? "past" : "upcoming" });
+  const today = todayInBrasilia();
+  // Aniversários dos próximos 90 dias entram na lista, intercalados por data.
+  const birthdays = past ? [] : upcomingBirthdays(await listBirthdays(), today, 90);
+  const items = [
+    ...events.map((event) => ({ kind: "event" as const, date: dayInBrasilia(event.starts_at), event })),
+    ...birthdays.map((birthday) => ({ kind: "birthday" as const, date: birthday.date, birthday })),
+  ].sort((a, b) => a.date.localeCompare(b.date) || (a.kind === "event" ? -1 : 1));
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,15 +38,21 @@ export default async function AgendaPage({ searchParams }: PageProps<"/agenda">)
         </Link>
       </nav>
 
-      {events.length === 0 ? (
+      {items.length === 0 ? (
         <Notice>{past ? "Nenhum evento passado." : "Nenhum evento marcado por enquanto."}</Notice>
       ) : (
         <ul className="flex flex-col gap-3">
-          {events.map((event) => (
-            <li key={event.id}>
-              <EventCard event={event} href={`/agenda/${event.id}`} />
-            </li>
-          ))}
+          {items.map((item) =>
+            item.kind === "event" ? (
+              <li key={item.event.id}>
+                <EventCard event={item.event} href={`/agenda/${item.event.id}`} />
+              </li>
+            ) : (
+              <li key={`b-${item.birthday.memberId}`}>
+                <BirthdayCard birthday={item.birthday} today={today} />
+              </li>
+            ),
+          )}
         </ul>
       )}
     </div>

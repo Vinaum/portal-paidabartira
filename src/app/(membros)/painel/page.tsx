@@ -4,11 +4,15 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Seal } from "@/components/ui/seal";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { BirthdayCard } from "@/features/aniversarios/components/birthday-card";
+import { upcomingBirthdays } from "@/features/aniversarios/dates";
+import { listBirthdays } from "@/features/aniversarios/queries";
 import { AnnouncementCard } from "@/features/comunicados/components/announcement-card";
 import { listAnnouncements } from "@/features/comunicados/queries";
 import { EventCard } from "@/features/eventos/components/event-card";
 import { listEvents } from "@/features/eventos/queries";
 import { requireActiveMember } from "@/lib/auth/session";
+import { todayInBrasilia } from "@/lib/format";
 import { CATEGORY_LABELS, ROLE_LABELS, canAccessAdmin } from "@/lib/permissions";
 
 export const metadata: Metadata = { title: "Painel" };
@@ -19,10 +23,13 @@ export const metadata: Metadata = { title: "Painel" };
  */
 export default async function DashboardPage() {
   const member = await requireActiveMember();
-  const [nextEvents, announcements] = await Promise.all([
+  const today = todayInBrasilia();
+  const [nextEvents, announcements, allBirthdays] = await Promise.all([
     listEvents({ scope: "upcoming", limit: 3 }),
     listAnnouncements(3),
+    listBirthdays(),
   ]);
+  const birthdays = upcomingBirthdays(allBirthdays, today, 30).slice(0, 5);
 
   return (
     <div className="flex flex-col gap-8">
@@ -70,6 +77,19 @@ export default async function DashboardPage() {
           </ul>
         )}
       </Card>
+
+      {birthdays.length > 0 ? (
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-2xl font-semibold">Aniversariantes dos próximos 30 dias</h2>
+          <ul className="flex flex-col gap-2">
+            {birthdays.map((birthday) => (
+              <li key={birthday.memberId}>
+                <BirthdayCard birthday={birthday} today={today} />
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <Card className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">

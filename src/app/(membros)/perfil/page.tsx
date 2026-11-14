@@ -9,6 +9,7 @@ import {
   addPeriod,
   saveAddress,
   saveBasics,
+  saveBirthday,
   saveEmails,
   savePhone,
   saveProfessional,
@@ -36,7 +37,7 @@ export default async function ProfilePage() {
     getOwnPhotoUrl(member.id),
     getOpenDeletionRequest(member.id),
   ]);
-  const { profile, periods, social, emails, phone, address, professional, education, privacy } = data;
+  const { profile, periods, social, birthday, emails, phone, address, professional, education, privacy } = data;
 
   return (
     <div className="flex flex-col gap-10">
@@ -150,6 +151,41 @@ export default async function ProfilePage() {
             visibility={privacy.emails}
             initial={{ officialEmail: s(emails?.official_email) }}
             fields={[{ name: "officialEmail", label: "E-mail oficial", kind: "email", autoComplete: "email", wide: true }]}
+          />
+        </Card>
+        <Card className="flex flex-col gap-3">
+          <h3 className="text-xl font-semibold">Aniversário</h3>
+          <p className="text-sepia-escuro">
+            Só dia e mês, sem o ano. Aparece na agenda dos integrantes (nunca no portal público) se a seção estiver
+            visível a integrantes. Deixe em branco para não aparecer.
+          </p>
+          <ProfileForm
+            action={saveBirthday}
+            visibility={privacy.birthday}
+            initial={{ day: birthday ? String(birthday.birth_day) : "", month: birthday ? String(birthday.birth_month) : "" }}
+            fields={[
+              { name: "day", label: "Dia", kind: "number" },
+              {
+                name: "month",
+                label: "Mês",
+                kind: "select",
+                options: [
+                { value: "", label: "—" },
+                { value: "1", label: "janeiro" },
+                { value: "2", label: "fevereiro" },
+                { value: "3", label: "março" },
+                { value: "4", label: "abril" },
+                { value: "5", label: "maio" },
+                { value: "6", label: "junho" },
+                { value: "7", label: "julho" },
+                { value: "8", label: "agosto" },
+                { value: "9", label: "setembro" },
+                { value: "10", label: "outubro" },
+                { value: "11", label: "novembro" },
+                { value: "12", label: "dezembro" },
+                ],
+              },
+            ]}
           />
         </Card>
         <Card className="flex flex-col gap-3">

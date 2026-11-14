@@ -9,7 +9,7 @@ export const VISIBILITY_LABELS: Record<Visibility, string> = {
   private: "Privado (só eu)",
 };
 
-export const PROFILE_SECTIONS = ["photo", "emails", "phone", "address", "professional", "academic", "social"] as const;
+export const PROFILE_SECTIONS = ["photo", "emails", "phone", "address", "professional", "academic", "social", "birthday"] as const;
 export type ProfileSection = (typeof PROFILE_SECTIONS)[number];
 
 const visibility = z.enum(VISIBILITIES, { error: "Escolha quem pode ver." });
@@ -83,6 +83,29 @@ export const emailsSchema = z.object({
     .pipe(z.email("Informe um e-mail válido.").nullable()),
   visibility,
 });
+
+const MONTH_DAYS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+/** Dia e mês (sem ano). Os dois vazios removem o aniversário; um só preenchido é erro. */
+export const birthdaySchema = z
+  .object({ day: z.string().trim(), month: z.string().trim(), visibility })
+  .superRefine((value, ctx) => {
+    if (value.day === "" && value.month === "") return;
+    const day = Number(value.day);
+    const month = Number(value.month);
+    if (!Number.isInteger(month) || month < 1 || month > 12) {
+      ctx.addIssue({ code: "custom", path: ["month"], message: "Escolha o mês." });
+      return;
+    }
+    if (!Number.isInteger(day) || day < 1 || day > (MONTH_DAYS[month - 1] ?? 31)) {
+      ctx.addIssue({ code: "custom", path: ["day"], message: "Dia inválido para este mês." });
+    }
+  })
+  .transform((value) =>
+    value.day === "" && value.month === ""
+      ? { birthday: null, visibility: value.visibility }
+      : { birthday: { day: Number(value.day), month: Number(value.month) }, visibility: value.visibility },
+  );
 
 export const phoneSchema = z.object({ phone: optional(30), whatsapp: optional(30), visibility });
 

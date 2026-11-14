@@ -133,7 +133,15 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - **Fotos de histórias.** Até 4, bucket privado `story-media`, caminho `autor/história/arquivo.webp`; o servidor re-encoda em WebP (sem GPS) e entrega URLs assinadas de 1 h de histórias que a RLS liberou. A exclusão de conta (LGPD) apaga as pastas da pessoa nos dois buckets (`member-media` e `story-media`) e as histórias e comentários dela saem junto.
 - **Nomes.** Autor e comentaristas aparecem pelo nome de exibição (`member_names`, só para integrantes ativos), mesmo se a pessoa se esconde do diretório: quem escreve numa história escolhe assinar.
 - **Auditoria.** Criação, exclusão, ocultação e reexibição de histórias e remoção de comentário por moderador registram só ids, nunca o texto.
+- **Moderação no admin.** `/admin/historias` lista todas as histórias (inclusive ocultas) com o botão de ocultar e reexibir; só quem tem `stories.moderate`.
 - **Limitações.** Não há limite de taxa nos comentários nem denúncia pelos leitores; a moderação depende de quem tem a permissão. Edição de comentário não existe (apaga e escreve de novo).
+
+## Aniversários na agenda
+
+- **Minimização.** Só dia e mês são guardados (`profile_birthday`), nunca o ano: não há como calcular idade. 29/02 aparece em 28/02 nos anos comuns.
+- **Quem aparece.** Só quem preencheu e deixou a seção `birthday` visível a integrantes (padrão para novos integrantes; sem dado, nada aparece). A regra é a mesma das outras seções (`can_view_section`): quem escolhe "privado" some da agenda dos outros e continua vendo o próprio. Integrante suspenso ou inativo não aparece.
+- **Nunca público.** A tabela não tem acesso para visitantes e `list_birthdays()` (invoker, sujeita à RLS) só é executável por contas autenticadas. A opção "público" do seletor, para esta seção, equivale a "integrantes".
+- **Onde aparece.** Na agenda (próximos 90 dias, intercalado com os eventos) e no painel (próximos 30 dias). Não há aniversários na agenda de eventos passados nem no portal público.
 
 ## O que ainda não está coberto
 

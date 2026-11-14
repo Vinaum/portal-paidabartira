@@ -12,6 +12,7 @@ import {
   basicsSchema,
   educationSchema,
   emailsSchema,
+  birthdaySchema,
   phoneSchema,
   professionalSchema,
   periodSchema,
@@ -68,6 +69,7 @@ async function saveSection(
   if (error) return FAILED;
   if (await setVisibility(supabase, member.id, section, visibility)) return FAILED;
   revalidatePath("/perfil");
+  revalidatePath("/agenda");
   return SAVED;
 }
 
@@ -183,6 +185,25 @@ export async function saveSocial(_previous: FormState, formData: FormData): Prom
     },
     data.visibility,
   );
+}
+
+export async function saveBirthday(_previous: FormState, formData: FormData): Promise<FormState> {
+  const values = read(formData, ["day", "month", "visibility"]);
+  const parsed = birthdaySchema.safeParse(values);
+  if (!parsed.success) return invalid(parsed.error, values);
+  const { birthday, visibility } = parsed.data;
+  if (birthday) {
+    return saveSection("profile_birthday", "birthday", { birth_day: birthday.day, birth_month: birthday.month }, visibility);
+  }
+  // Campos vazios: remove o aniversário.
+  const member = await requireActiveMember();
+  const supabase = await createClient();
+  const { error } = await supabase.from("profile_birthday").delete().eq("member_id", member.id);
+  if (error) return FAILED;
+  if (await setVisibility(supabase, member.id, "birthday", visibility)) return FAILED;
+  revalidatePath("/perfil");
+  revalidatePath("/agenda");
+  return SAVED;
 }
 
 export async function saveEmails(_previous: FormState, formData: FormData): Promise<FormState> {

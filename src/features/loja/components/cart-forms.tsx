@@ -1,17 +1,23 @@
 "use client";
 
-import { useActionState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState, useTransition } from "react";
 
 import { SelectField, TextareaField } from "@/components/ui/form-fields";
+import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { TextField } from "@/components/ui/text-field";
 import { SubmitButton } from "@/features/auth/components/submit-button";
-import { initialFormState } from "@/lib/form";
+import { initialFormState, type FormState } from "@/lib/form";
 
 import { addToCart, checkout, removeCartLine, saveShopPix, updateCartLine } from "../actions";
 
 export function AddToCartForm({ productId, sizes }: { productId: string; sizes: string[] }) {
   const [state, formAction] = useActionState(addToCart, initialFormState);
+  const router = useRouter();
+  useEffect(() => {
+    if (state.status === "success" && state.data?.href) router.push(state.data.href);
+  }, [state, router]);
   const errors = state.fieldErrors ?? {};
   const values = state.values ?? {};
   return (
@@ -71,16 +77,34 @@ export function RemoveCartLineForm({ productId, size }: { productId: string; siz
 }
 
 export function CheckoutForm() {
-  const [state, formAction] = useActionState(checkout, initialFormState);
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [state, setState] = useState<FormState>(initialFormState);
+
+  // O envio é feito à mão: ao limpar o cookie do carrinho a página se atualiza e esvazia, e um
+  // formulário com useActionState sumiria antes de conseguir navegar para o pedido.
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(async () => {
+      const result = await checkout(initialFormState, formData);
+      setState(result);
+      if (result.status === "success" && result.data?.href) {
+        router.push(result.data.href);
+        router.refresh(); // o contador do carrinho no cabeçalho volta a zero
+      }
+    });
+  }
+
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
       {state.message ? <Notice tone="error">{state.message}</Notice> : null}
       <TextareaField name="note" label="Observação para a tesouraria (opcional)" rows={2} maxLength={300} defaultValue={state.values?.note ?? ""} error={state.fieldErrors?.note} />
       <p className="text-sm text-sepia-escuro">Não escreva dados pessoais na observação.</p>
       <div>
-        <SubmitButton pendingLabel="Finalizando…">
-          Finalizar pedido e pagar com PIX
-        </SubmitButton>
+        <Button type="submit" disabled={pending} aria-disabled={pending}>
+          {pending ? "Finalizando…" : "Finalizar pedido e pagar com PIX"}
+        </Button>
       </div>
     </form>
   );

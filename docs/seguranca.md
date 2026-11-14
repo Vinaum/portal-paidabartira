@@ -204,3 +204,12 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
   administração, trilha de auditoria da troca e aviso na tela. Chave de pessoa física até existir
   a Associação.
 - Versão `2026-11-14.2` da política: cookie do carrinho e QR do PIX.
+
+## Cabeçalho público e carrinho
+
+- As páginas públicas são pré-renderizadas; por isso o botão "Entrar / Meu painel" e o ícone do
+  carrinho vêm de `GET /api/sessao` (só `loggedIn` e `cartCount`, sem dado pessoal, `no-store`),
+  consultado no navegador depois de carregar. Renderizar a sessão no servidor dentro da página
+  pré-renderizada causava erro de hidratação para quem estava logado.
+- Nas áreas restritas o contador é lido do cookie no servidor. Adicionar ao carrinho e finalizar
+  navegam pelo cliente (e não por `redirect`), porque mexer no cookie atualiza a página atual.

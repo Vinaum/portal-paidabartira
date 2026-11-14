@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addLine, parseCart, removeLine, setLineQuantity } from "@/features/loja/cart-lines";
+import { addLine, cartItemCount, cartLevel, parseCart, removeLine, setLineQuantity } from "@/features/loja/cart-lines";
 
 const A = "11111111-1111-4111-8111-111111111111";
 const B = "22222222-2222-4222-8222-222222222222";
@@ -38,5 +38,15 @@ describe("carrinho", () => {
     expect(parseCart(JSON.stringify([{ p: "x", s: "", q: 1 }]))).toEqual([]);
     expect(parseCart(JSON.stringify([{ p: A, s: "", q: 999 }]))).toEqual([]);
     expect(parseCart(JSON.stringify([{ p: A, s: "M", q: 2 }]))).toEqual([{ p: A, s: "M", q: 2 }]);
+  });
+});
+
+describe("indicador do carrinho", () => {
+  it("soma as unidades de todas as linhas", () => {
+    expect(cartItemCount([])).toBe(0);
+    expect(cartItemCount([{ p: A, s: "", q: 2 }, { p: B, s: "M", q: 3 }])).toBe(5);
+  });
+  it("define quanto a cestinha enche", () => {
+    expect([0, 1, 2, 4, 5, 20].map(cartLevel)).toEqual([0, 1, 2, 2, 3, 3]);
   });
 });

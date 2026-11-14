@@ -42,3 +42,15 @@ export function parseCart(raw: string | undefined): CartLine[] {
   }
 }
 
+
+/** Total de unidades no carrinho. */
+export function cartItemCount(lines: CartLine[]): number {
+  return lines.reduce((sum, line) => sum + line.q, 0);
+}
+
+/** Quanto a cestinha "enche": 0 vazia, 1 (1 item), 2 (2 a 4), 3 (5 ou mais). */
+export function cartLevel(count: number): 0 | 1 | 2 | 3 {
+  if (count <= 0) return 0;
+  if (count === 1) return 1;
+  return count <= 4 ? 2 : 3;
+}

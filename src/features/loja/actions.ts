@@ -33,6 +33,11 @@ function friendly(error: { code?: string; message?: string }): string {
   return "Não foi possível concluir. Confira os dados e tente de novo.";
 }
 
+/** O contador do carrinho fica no cabeçalho: atualiza a página do carrinho. */
+function revalidateCart() {
+  revalidatePath("/carrinho");
+}
+
 function revalidateShop() {
   revalidatePath("/loja", "layout");
   revalidatePath("/pedidos", "layout");
@@ -139,7 +144,7 @@ export async function saveProductPhoto(_previous: FormState, formData: FormData)
   return { status: "success", message: "Foto atualizada." };
 }
 
-/** Coloca o produto no carrinho (cookie) e leva para o carrinho. */
+/** Coloca o produto no carrinho (cookie); a tela leva para o carrinho. */
 export async function addToCart(_previous: FormState, formData: FormData): Promise<FormState> {
   await requireActiveMember();
   const values = { productId: text(formData, "productId"), quantity: text(formData, "quantity"), size: text(formData, "size") };
@@ -157,7 +162,8 @@ export async function addToCart(_previous: FormState, formData: FormData): Promi
     chosen = size;
   }
   await writeCart(addLine(await readCart(), { p: productId, s: chosen, q: quantity }));
-  redirect("/carrinho");
+  // Sem redirect aqui: o destino seria renderizado com o cookie antigo. A tela navega depois.
+  return { status: "success", data: { href: "/carrinho" } };
 }
 
 export async function updateCartLine(_previous: FormState, formData: FormData): Promise<FormState> {
@@ -169,7 +175,7 @@ export async function updateCartLine(_previous: FormState, formData: FormData): 
   });
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrorsFrom(parsed.error) };
   await writeCart(setLineQuantity(await readCart(), parsed.data.productId, parsed.data.size, parsed.data.quantity));
-  revalidatePath("/carrinho");
+  revalidateCart();
   return { status: "success" };
 }
 
@@ -182,7 +188,7 @@ export async function removeCartLine(_previous: FormState, formData: FormData): 
   });
   if (!parsed.success) return { status: "error", message: "Item inválido." };
   await writeCart(removeLine(await readCart(), parsed.data.productId, parsed.data.size));
-  revalidatePath("/carrinho");
+  revalidateCart();
   return { status: "success" };
 }
 
@@ -202,8 +208,9 @@ export async function checkout(_previous: FormState, formData: FormData): Promis
   });
   if (error || typeof data !== "string") return { status: "error", message: friendly(error ?? {}), values };
   await writeCart([]);
+  // Sem revalidar /carrinho aqui: a página esvaziaria e o formulário sumiria antes de a tela navegar.
   revalidateShop();
-  redirect(`/pedidos/${data}?novo=1`);
+  return { status: "success", data: { href: `/pedidos/${data}?novo=1` } };
 }
 
 export async function saveShopPix(_previous: FormState, formData: FormData): Promise<FormState> {

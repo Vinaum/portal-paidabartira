@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
+import { CartIcon, CartIndicator } from "@/features/loja/components/cart-indicator";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import type { CurrentMember } from "@/lib/auth/session";
 import { canAccessAdmin } from "@/lib/permissions";
@@ -16,7 +18,6 @@ const COMMUNITY: NavItem[] = [
 ];
 const SHOP: NavItem[] = [
   { href: "/loja", label: "Ver a loja" },
-  { href: "/carrinho", label: "Carrinho" },
   { href: "/pedidos", label: "Meus pedidos" },
 ];
 const ACCOUNT: NavItem[] = [{ href: "/perfil", label: "Meu perfil" }];
@@ -44,6 +45,9 @@ export function MemberHeader({ member, area }: { member: CurrentMember; area: "m
           <NavMenu label={member.displayName} items={ACCOUNT} align="right">
             <SignOutButton variant="outline" />
           </NavMenu>
+          <Suspense fallback={<CartIcon level={0} />}>
+            <CartIndicator />
+          </Suspense>
         </nav>
       </div>
     </header>

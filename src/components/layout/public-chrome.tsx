@@ -1,31 +1,9 @@
 import Link from "next/link";
-import { Suspense } from "react";
 
-import { ButtonLink } from "@/components/ui/button";
 import { foundedYear, site } from "@/config/site";
-import { readPublicEnv } from "@/lib/env";
-import { createClient } from "@/lib/supabase/server";
 
 import { LogoSeal } from "./logo-seal";
-
-/** Quem já está logado vê "Painel" em vez de "Entrar". */
-async function SessionLink() {
-  let loggedIn = false;
-  if (readPublicEnv()) {
-    const supabase = await createClient();
-    const { data } = await supabase.auth.getClaims();
-    loggedIn = Boolean(data?.claims?.sub);
-  }
-  return loggedIn ? (
-    <ButtonLink href="/painel" variant="dark">
-      Meu painel
-    </ButtonLink>
-  ) : (
-    <ButtonLink href="/login" variant="dark">
-      Entrar
-    </ButtonLink>
-  );
-}
+import { PublicSessionNav } from "./public-session-nav";
 
 export function PublicHeader() {
   return (
@@ -59,15 +37,7 @@ export function PublicHeader() {
           <Link href="/eventos" className="font-semibold underline-offset-4 hover:underline">
             Eventos
           </Link>
-          <Suspense
-            fallback={
-              <ButtonLink href="/login" variant="dark">
-                Entrar
-              </ButtonLink>
-            }
-          >
-            <SessionLink />
-          </Suspense>
+          <PublicSessionNav />
         </nav>
       </div>
     </header>

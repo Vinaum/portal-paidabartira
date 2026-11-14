@@ -2,15 +2,14 @@ import { Suspense } from "react";
 
 import { LogoSeal } from "@/components/layout/logo-seal";
 import { ButtonLink } from "@/components/ui/button";
-import { Notice } from "@/components/ui/notice";
 import { PhotoFrame, PhotoPlaceholder } from "@/components/ui/photo-frame";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { foundedOnLong, placeholder, site } from "@/config/site";
+import { foundedOnLong, site } from "@/config/site";
+import { HistoryText, HouseImage, HousePeople } from "@/features/portal/components/home-sections";
 import { HomeUpcomingEvents } from "@/features/eventos/components/public-events";
 
 /**
  * Página inicial: identidade da república e entrada para a área restrita.
- * Moradores e caixinha entram com seus módulos.
  */
 export default function HomePage() {
   return (
@@ -33,7 +32,9 @@ export default function HomePage() {
         </div>
         <div className="mx-auto w-full max-w-sm">
           <PhotoFrame caption="Foto da república" tilt="right">
-            <PhotoPlaceholder label="Foto da casa — a enviar" />
+            <Suspense fallback={<PhotoPlaceholder label="Carregando foto" />}>
+              <HouseImage />
+            </Suspense>
           </PhotoFrame>
         </div>
       </section>
@@ -42,12 +43,9 @@ export default function HomePage() {
         <SectionHeading number="01" kicker="Memória" title="Nossa história" />
         <div className="grid gap-8 md:grid-cols-[auto_1fr] md:items-start">
           <LogoSeal size={132} />
-          <div className="max-w-prose">
-            <p>
-              A {site.name} foi fundada em {foundedOnLong()}.{" "}
-              {site.history ?? placeholder("Texto da história da república")}
-            </p>
-          </div>
+          <Suspense fallback={<p>Carregando…</p>}>
+            <HistoryText />
+          </Suspense>
         </div>
       </section>
 
@@ -58,7 +56,12 @@ export default function HomePage() {
         </Suspense>
       </section>
 
-      <Notice>O portal está em construção. Moradores e caixinha chegam nas próximas etapas.</Notice>
+      <section className="flex flex-col gap-4">
+        <SectionHeading number="03" kicker="Pessoas" title="Quem faz a casa" />
+        <Suspense fallback={<p>Carregando…</p>}>
+          <HousePeople />
+        </Suspense>
+      </section>
     </div>
   );
 }

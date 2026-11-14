@@ -23,6 +23,7 @@ export default async function AdminHomePage() {
   const canManageFinance = member.permissions.includes(PERMISSIONS.financeWrite);
   const canPublish = member.permissions.includes(PERMISSIONS.announcementsPublish);
   const canModerate = member.permissions.includes(PERMISSIONS.storiesModerate);
+  const canSettings = member.permissions.includes(PERMISSIONS.settingsManage);
   const canManageStore = member.permissions.includes(PERMISSIONS.storeManage);
   const canManageMembers = member.permissions.includes(PERMISSIONS.membersManage);
   const canHandlePrivacy = member.permissions.includes(PERMISSIONS.privacyHandle);
@@ -97,6 +98,18 @@ export default async function AdminHomePage() {
           </div>
           <ButtonLink href="/admin/historias" variant="dark">
             Moderar histórias
+          </ButtonLink>
+        </Card>
+      ) : null}
+
+      {canSettings ? (
+        <Card className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold">Conteúdo do portal</h2>
+            <p>Texto da história, e-mail de contato e foto da casa na página inicial.</p>
+          </div>
+          <ButtonLink href="/admin/conteudo" variant="dark">
+            Editar conteúdo
           </ButtonLink>
         </Card>
       ) : null}

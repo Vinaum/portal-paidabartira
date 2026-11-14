@@ -18,7 +18,10 @@ export function PublicHeader() {
             <span className="rotulo text-sepia-escuro">República · desde {foundedYear()}</span>
           </span>
         </Link>
-        <nav aria-label="Principal" className="flex items-center gap-5">
+        <nav aria-label="Principal" className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
+          <Link href="/moradores" className="font-semibold underline-offset-4 hover:underline">
+            Moradores
+          </Link>
           <Link href="/caixinha" className="font-semibold underline-offset-4 hover:underline">
             Caixinha
           </Link>
@@ -48,6 +51,9 @@ export function PublicFooter() {
           República {site.name} · {foundedYear()}
         </p>
         <nav aria-label="Rodapé" className="flex gap-5">
+          <Link href="/ex-moradores" className="underline-offset-4 hover:underline">
+            Quem já passou por aqui
+          </Link>
           <Link href="/solicitar-acesso" className="underline-offset-4 hover:underline">
             Solicitar acesso
           </Link>

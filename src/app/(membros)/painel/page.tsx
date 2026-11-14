@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { upcomingBirthdays } from "@/features/aniversarios/dates";
 import { listBirthdays } from "@/features/aniversarios/queries";
 import { AnnouncementCard } from "@/features/comunicados/components/announcement-card";
 import { listAnnouncements } from "@/features/comunicados/queries";
+import { AdminPending, FundsSummary, MyOrdersSummary, ProfileChecklist, RecentStories } from "@/features/painel/components/dashboard-blocks";
 import { EventCard } from "@/features/eventos/components/event-card";
 import { listEvents } from "@/features/eventos/queries";
 import { requireActiveMember } from "@/lib/auth/session";
@@ -18,8 +20,8 @@ import { CATEGORY_LABELS, ROLE_LABELS, canAccessAdmin } from "@/lib/permissions"
 export const metadata: Metadata = { title: "Painel" };
 
 /**
- * Painel da Etapa 2: confirma a identidade e o vínculo lidos do banco.
- * Comunicados, histórias e caixinha entram com seus módulos.
+ * Painel do integrante: vínculo, pendências (para quem administra), checklist do
+ * perfil, agenda, aniversários, comunicados e resumos de caixinha, pedidos e histórias.
  */
 export default async function DashboardPage() {
   const member = await requireActiveMember();
@@ -57,6 +59,13 @@ export default async function DashboardPage() {
           ) : null}
         </div>
       </Card>
+
+      <Suspense fallback={null}>
+        <AdminPending permissions={member.permissions} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <ProfileChecklist memberId={member.id} />
+      </Suspense>
 
       <Card className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -110,6 +119,15 @@ export default async function DashboardPage() {
           </ul>
         )}
       </Card>
+      <Suspense fallback={null}>
+        <FundsSummary />
+      </Suspense>
+      <Suspense fallback={null}>
+        <MyOrdersSummary memberId={member.id} />
+      </Suspense>
+      <Suspense fallback={<p>Carregando histórias…</p>}>
+        <RecentStories />
+      </Suspense>
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { Notice } from "@/components/ui/notice";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { placeholder, site } from "@/config/site";
+import { site } from "@/config/site";
+import { ContactEmail } from "@/features/portal/components/home-sections";
 import { POLICY_VERSION } from "@/features/acesso/schemas";
 
 export const metadata: Metadata = { title: "Política de privacidade" };
@@ -16,7 +18,6 @@ const CONTROLLER_NAME = "Vinicius Sartori";
  * publique nova versão sempre que o tratamento de dados mudar.
  */
 export default function PrivacyPage() {
-  const contact = site.contactEmail ?? placeholder("E-mail de contato");
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-6">
       <SectionHeading as="h1" kicker={`Versão ${POLICY_VERSION}`} title="Política de privacidade" />
@@ -29,7 +30,11 @@ export default function PrivacyPage() {
         <h2 className="text-2xl font-semibold">Quem responde pelos dados</h2>
         <p>
           O portal é mantido pela república {site.name}. O responsável pelo tratamento dos dados é{" "}
-          {CONTROLLER_NAME}. Contato: {contact}.
+          {CONTROLLER_NAME}. Contato:{" "}
+          <Suspense fallback="…">
+            <ContactEmail />
+          </Suspense>
+          .
         </p>
       </section>
 

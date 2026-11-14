@@ -143,6 +143,13 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - **Nunca público.** A tabela não tem acesso para visitantes e `list_birthdays()` (invoker, sujeita à RLS) só é executável por contas autenticadas. A opção "público" do seletor, para esta seção, equivale a "integrantes".
 - **Onde aparece.** Na agenda (próximos 90 dias, intercalado com os eventos) e no painel (próximos 30 dias). Não há aniversários na agenda de eventos passados nem no portal público.
 
+## Portal público e painel
+
+- **Quem aparece.** `public_people()` (definer, executável por visitantes) devolve só integrantes ativos que marcaram "aparecer no portal público", nas categorias morador atual e ex-morador (agregados não aparecem). Campos: nome de exibição, apelido, apresentação, categoria, fundador e foto (apenas se a seção foto estiver pública). O período na casa continua restrito a integrantes.
+- **Números.** `public_house_stats()` devolve contagens agregadas (moram hoje, já moraram, fundadores), sem identificar ninguém.
+- **Conteúdo institucional.** Texto da história, e-mail de contato e foto da casa ficam em `republic_settings` (chaves públicas) e se editam em `/admin/conteudo` (`settings.manage`). A foto é regravada em WebP no bucket público `public-media`; mudanças vão para a auditoria genérica de configurações.
+- **Painel.** Pendências (solicitações de acesso, pedidos LGPD, pedidos da loja) só aparecem para quem tem a permissão correspondente. O resumo de caixinhas mostra o que cada integrante já pode ver em `/financeiro`.
+
 ## O que ainda não está coberto
 
 - Política de Segurança de Conteúdo (CSP) estrita. Entram hoje os cabeçalhos básicos

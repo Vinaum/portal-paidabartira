@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { deleteAccountSchema, resolveRequestSchema, setRoleSchema, updateMemberSchema } from "./schemas";
 
-const BUCKETS = ["member-media", "story-media"] as const;
+const BUCKETS = ["member-media", "story-media", "museum-media"] as const;
 // ~100 anos: o Auth só aceita duração, não "para sempre".
 const BAN_DURATION = "876000h";
 

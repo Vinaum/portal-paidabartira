@@ -30,7 +30,7 @@ export default function PrivacyPage() {
         <h2 className="text-2xl font-semibold">O que mudou nesta versão</h2>
         <p>
           A versão anterior descrevia só o pedido de acesso e o perfil. Esta passa a cobrir também aniversário,
-          histórias e comentários, agenda, loja, caixinha e a lista pública de pessoas, e explica o que acontece
+          histórias e comentários, Museu, agenda, loja, caixinha e a lista pública de pessoas, e explica o que acontece
           com cada dado quando uma conta é excluída.
         </p>
       </section>
@@ -72,6 +72,11 @@ export default function PrivacyPage() {
             escrever. O seu nome de exibição aparece junto como autor.
           </li>
           <li>
+            <strong>Museu:</strong> as fotos que você enviar para os álbuns, com legenda opcional. Não há marcação
+            de pessoas. Qualquer integrante pode adicionar fotos a um álbum, e quem cria o álbum escolhe se ele é
+            público ou só de integrantes. O servidor descarta os metadados da foto, inclusive o GPS.
+          </li>
+          <li>
             <strong>Agenda:</strong> a sua resposta (vou, talvez, não vou) aos eventos.
           </li>
           <li>
@@ -109,6 +114,11 @@ export default function PrivacyPage() {
           <li>
             <strong>Histórias, comentários e agenda:</strong> só integrantes ativos. A moderação pode ocultar uma
             história; ela segue visível para quem a escreveu.
+          </li>
+          <li>
+            <strong>Museu:</strong> álbuns públicos podem ser vistos por qualquer pessoa, sem o nome de quem enviou
+            cada foto; álbuns internos, só por integrantes. Se aparecer em uma foto e não quiser, peça a remoção
+            pelo contato acima ou a quem criou o álbum; a moderação também pode ocultar fotos.
           </li>
           <li>
             <strong>Aniversário:</strong> aparece na agenda dos integrantes só se a seção estiver visível para
@@ -153,6 +163,7 @@ export default function PrivacyPage() {
         <ul className="list-disc space-y-1 pl-6">
           <li>o perfil e tudo que está nele, incluindo foto, contatos, endereço, redes e aniversário;</li>
           <li>as suas histórias, as fotos delas e os seus comentários;</li>
+          <li>as fotos que você enviou ao Museu (os álbuns que você criou continuam, sem a sua autoria);</li>
           <li>as suas respostas a eventos e a sua designação como responsável de caixinha ou da loja, se houver;</li>
           <li>os dados do pedido de acesso (nome, e-mail e telefone).</li>
         </ul>
@@ -193,7 +204,7 @@ export default function PrivacyPage() {
         </p>
       </section>
 
-      <p className="rotulo text-sepia-escuro">Versão {POLICY_VERSION} · 13 de novembro de 2026</p>
+      <p className="rotulo text-sepia-escuro">Versão {POLICY_VERSION} · 14 de novembro de 2026</p>
     </article>
   );
 }

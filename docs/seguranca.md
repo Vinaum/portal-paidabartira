@@ -163,8 +163,26 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - O texto fica em `src/app/(publico)/privacidade/page.tsx` e a versão em `POLICY_VERSION`
   (`src/features/acesso/schemas.ts`). Cada versão precisa de uma linha em
   `privacy_policy_versions` (migration), porque o pedido de acesso grava a versão aceita.
-- Versão `2026-11-13`: passa a cobrir aniversário, histórias, comentários, agenda, loja, caixinha
+- Versão `2026-11-13`: passou a cobrir aniversário, histórias, comentários, agenda, loja, caixinha
   e a lista pública, e detalha o que a exclusão de conta apaga ou mantém anonimizado.
 - Sempre que um módulo novo tratar dados pessoais, atualize o texto e publique uma nova versão.
 - Pendências: revisão jurídica e aviso aos integrantes já ativos sobre a nova versão
   (por exemplo, um comunicado).
+- Versão `2026-11-14`: acrescenta o Museu.
+
+## Museu
+
+- `albums` (visibilidade `public`/`members`, oculto pela moderação) e `album_photos` (quem enviou,
+  legenda, oculta). Sem marcação de pessoas: menos dado pessoal e menos pedidos de remoção.
+- Qualquer integrante ativo cria álbum e envia foto a álbum não oculto. Edita e apaga o álbum
+  quem o criou; apaga uma foto quem a enviou ou quem criou o álbum. A moderação
+  (`stories.moderate`, via `museum_set_hidden`) oculta álbum ou foto; o texto e o arquivo ficam.
+- Visitantes (RLS `anon`) só leem álbum público e não oculto e suas fotos não ocultas. As fotos
+  ficam em bucket privado (`museum-media`); o servidor assina a URL (1 h) só depois de a RLS
+  liberar a linha. O nome de quem criou o álbum só aparece para integrantes.
+- Fotos são regravadas em WebP (sem EXIF/GPS). Limite de 100 fotos por álbum (gatilho).
+- Exclusão de conta: as fotos enviadas são apagadas (linhas por `cascade`, arquivos pela pasta
+  do integrante); álbuns criados continuam com `created_by` nulo.
+- Auditoria: ids, visibilidade e ocultação; nunca título, descrição ou legenda.
+- Risco aceito: um álbum público com foto enviada por outro integrante expõe quem aparece nela.
+  Mitigação: aviso no formulário, moderação e remoção pelo contato da política.

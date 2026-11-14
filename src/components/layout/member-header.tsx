@@ -34,6 +34,9 @@ export function MemberHeader({ member, area }: { member: CurrentMember; area: "m
           <Link href="/historias" className="font-semibold underline-offset-4 hover:underline">
             Histórias
           </Link>
+          <Link href="/museu" className="font-semibold underline-offset-4 hover:underline">
+            Museu
+          </Link>
           <Link href="/loja" className="font-semibold underline-offset-4 hover:underline">
             Loja
           </Link>

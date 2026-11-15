@@ -1,45 +1,62 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { foundedYear, site } from "@/config/site";
 
 import { LogoSeal } from "./logo-seal";
+import { NavLink, NavMenu, type NavItem } from "./nav-menu";
 import { PublicSessionNav } from "./public-session-nav";
+
+const ABOUT: NavItem[] = [
+  { href: "/moradores", label: "Moradores" },
+  { href: "/museu", label: "Museu" },
+  { href: "/comunicados", label: "Comunicados" },
+  { href: "/eventos", label: "Eventos" },
+];
+
+const linkClass = "font-semibold underline-offset-4 hover:underline";
+
+/** Mesmo desenho do menu, sem destaque da página atual: ocupa o lugar até o menu carregar. */
+function PublicNavFallback() {
+  return (
+    <>
+      <Link href="/moradores" className={linkClass}>
+        A República <span aria-hidden="true" className="text-xs">▼</span>
+      </Link>
+      <Link href="/vagas" className={linkClass}>
+        Vagas
+      </Link>
+      <Link href="/caixinha" className={linkClass}>
+        Caixinha
+      </Link>
+      <Link href="/loja" className={linkClass}>
+        Loja
+      </Link>
+    </>
+  );
+}
 
 export function PublicHeader() {
   return (
     <header className="border-b-4 border-preto bg-creme">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="flex items-center gap-3">
+      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3">
+        <Link href="/" className="flex shrink-0 items-center gap-3">
           <LogoSeal size={56} />
           <span>
             <span className="block font-display text-2xl font-bold leading-none text-preto">
               {site.name}
             </span>
-            <span className="rotulo text-sepia-escuro">República · desde {foundedYear()}</span>
+            <span className="rotulo whitespace-nowrap text-sepia-escuro">República · desde {foundedYear()}</span>
           </span>
         </Link>
         <nav aria-label="Principal" className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
-          <Link href="/moradores" className="font-semibold underline-offset-4 hover:underline">
-            Moradores
-          </Link>
-          <Link href="/vagas" className="font-semibold underline-offset-4 hover:underline">
-            Vagas
-          </Link>
-          <Link href="/caixinha" className="font-semibold underline-offset-4 hover:underline">
-            Caixinha
-          </Link>
-          <Link href="/loja" className="font-semibold underline-offset-4 hover:underline">
-            Loja
-          </Link>
-          <Link href="/museu" className="font-semibold underline-offset-4 hover:underline">
-            Museu
-          </Link>
-          <Link href="/comunicados" className="font-semibold underline-offset-4 hover:underline">
-            Comunicados
-          </Link>
-          <Link href="/eventos" className="font-semibold underline-offset-4 hover:underline">
-            Eventos
-          </Link>
+          {/* usePathname (destaque da página atual) pede Suspense em páginas pré-renderizadas. */}
+          <Suspense fallback={<PublicNavFallback />}>
+            <NavMenu label="A República" items={ABOUT} />
+            <NavLink href="/vagas">Vagas</NavLink>
+            <NavLink href="/caixinha">Caixinha</NavLink>
+            <NavLink href="/loja">Loja</NavLink>
+          </Suspense>
           <PublicSessionNav />
         </nav>
       </div>

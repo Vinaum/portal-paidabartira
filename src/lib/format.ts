@@ -9,7 +9,14 @@ const dateTimeFormat = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
 });
 
+const dateOnlyFormat = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" });
+
+/**
+ * Aceita data com hora ("2026-11-15T03:00:00Z", mostrada em Brasília) ou só a data
+ * ("2026-11-15"), que é um dia do calendário e não passa por conversão de fuso.
+ */
 export function formatDate(iso: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return dateOnlyFormat.format(new Date(`${iso}T00:00:00Z`));
   return dateFormat.format(new Date(iso));
 }
 
@@ -22,6 +29,12 @@ const monthFormat = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "num
 /** "2007-03-01" -> "março de 2007". Datas de período guardam só mês e ano. */
 export function formatMonth(isoDate: string): string {
   return monthFormat.format(new Date(`${isoDate.slice(0, 7)}-01T00:00:00Z`));
+}
+
+/** "novembro de 2026" -> "Novembro de 2026" (só a primeira letra, sem maiúscula em "de"). */
+export function formatMonthTitle(isoDate: string): string {
+  const text = formatMonth(isoDate);
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 /** Período de residência: "março de 2007 a julho de 2010" ou "... até hoje". */

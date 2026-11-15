@@ -5,6 +5,7 @@ export const PROTECTED_PREFIXES = [
   "/perfil",
   "/agenda",
   "/financeiro",
+  "/associacao",
   "/pedidos",
   "/carrinho",
   "/historias",

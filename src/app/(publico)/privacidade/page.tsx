@@ -29,9 +29,9 @@ export default function PrivacyPage() {
       <section className="flex flex-col gap-2">
         <h2 className="text-2xl font-semibold">O que mudou nesta versão</h2>
         <p>
-          A versão anterior descrevia só o pedido de acesso e o perfil. Esta passa a cobrir também aniversário,
-          histórias e comentários, Museu, agenda, loja, caixinha e a lista pública de pessoas, e explica o que acontece
-          com cada dado quando uma conta é excluída.
+          Esta versão passa a cobrir a Associação, grupo de ex-moradores e agregados que apoia a república: o pedido de
+          adesão, as mensalidades informadas por PIX, o livro-caixa e os documentos. Também explica o que acontece com
+          esses dados quando uma conta é excluída.
         </p>
       </section>
 
@@ -90,6 +90,13 @@ export default function PrivacyPage() {
             contribuiu; mesmo assim, a descrição de uma entrada só é vista por quem gerencia a caixinha.
           </li>
           <li>
+            <strong>Associação:</strong> o seu pedido de adesão (e a decisão da administração), a data de entrada e as
+            mensalidades que você informar (mês, valor e se o PIX foi conferido). O PIX é pago no seu banco; a
+            tesouraria confere à mão e não guardamos dados de conta. No livro-caixa da Associação a entrada aparece
+            como “Mensalidade” do mês, sem o seu nome. Os documentos (estatuto, atas, prestação de contas) são arquivos
+            PDF publicados pela administração.
+          </li>
+          <li>
             <strong>Fotos enviadas:</strong> o servidor regrava cada imagem e descarta os metadados, inclusive a
             localização (GPS), antes de guardá-la.
           </li>
@@ -141,6 +148,11 @@ export default function PrivacyPage() {
             qualquer momento no perfil.
           </li>
           <li>
+            <strong>Associação:</strong> o seu pedido, a sua situação e as suas mensalidades são vistos por você e por
+            quem gerencia a Associação. Associados ativos veem os totais, o fluxo por mês, cada saída e os documentos,
+            sem o nome de quem contribuiu. Ninguém mais tem acesso a essa área.
+          </li>
+          <li>
             <strong>Pedido de acesso:</strong> visto apenas por quem analisa solicitações.
           </li>
         </ul>
@@ -167,7 +179,8 @@ export default function PrivacyPage() {
           <li>as suas histórias, as fotos delas e os seus comentários;</li>
           <li>as fotos que você enviou ao Museu (os álbuns que você criou continuam, sem a sua autoria);</li>
           <li>as suas respostas a eventos e a sua designação como responsável de caixinha ou da loja, se houver;</li>
-          <li>os dados do pedido de acesso (nome, e-mail e telefone).</li>
+          <li>os dados do pedido de acesso (nome, e-mail e telefone);</li>
+          <li>o seu cadastro na Associação e as suas mensalidades informadas.</li>
         </ul>
         <p>Algumas informações permanecem, sem ligação com a sua pessoa:</p>
         <ul className="list-disc space-y-1 pl-6">
@@ -179,6 +192,10 @@ export default function PrivacyPage() {
           <li>
             <strong>Lançamentos da caixinha:</strong> são um livro-caixa que não pode ser alterado. Continuam, sem
             identificar quem os registrou.
+          </li>
+          <li>
+            <strong>Livro-caixa da Associação:</strong> também não pode ser alterado. As entradas de mensalidade
+            continuam, sem nome, e deixam de ter qualquer ligação com você quando o seu cadastro é apagado.
           </li>
           <li>
             <strong>Registros de auditoria:</strong> guardam apenas um identificador interno, que deixa de apontar

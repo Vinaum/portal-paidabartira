@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { CartIcon, CartIndicator } from "@/features/loja/components/cart-indicator";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import type { CurrentMember } from "@/lib/auth/session";
-import { canAccessAdmin } from "@/lib/permissions";
+import { PERMISSIONS, canAccessAdmin } from "@/lib/permissions";
 import { site } from "@/config/site";
 
 import { LogoSeal } from "./logo-seal";
@@ -16,6 +16,7 @@ const COMMUNITY: NavItem[] = [
   { href: "/museu", label: "Museu" },
   { href: "/diretorio", label: "Membros" },
 ];
+const ASSOCIATION: NavItem = { href: "/associacao", label: "Associação" };
 const SHOP: NavItem[] = [
   { href: "/loja", label: "Ver a loja" },
   { href: "/pedidos", label: "Meus pedidos" },
@@ -24,6 +25,11 @@ const ACCOUNT: NavItem[] = [{ href: "/perfil", label: "Meu perfil" }];
 
 /** Cabeçalho das áreas restritas. Os atalhos dependem das permissões. */
 export function MemberHeader({ member, area }: { member: CurrentMember; area: "membros" | "admin" }) {
+  // A Associação é para ex-moradores e agregados (e para quem a gerencia).
+  const communityItems =
+    member.category !== "atual_morador" || member.permissions.includes(PERMISSIONS.associationManage)
+      ? [...COMMUNITY, ASSOCIATION]
+      : COMMUNITY;
   return (
     <header className="border-b-4 border-preto bg-verde text-creme">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
@@ -38,7 +44,7 @@ export function MemberHeader({ member, area }: { member: CurrentMember; area: "m
         </Link>
         <nav aria-label="Área restrita" className="flex flex-wrap items-center gap-x-5 gap-y-2">
           <NavLink href="/painel">Painel</NavLink>
-          <NavMenu label="A República" items={COMMUNITY} />
+          <NavMenu label="A República" items={communityItems} />
           <NavMenu label="Loja" items={SHOP} />
           <NavLink href="/financeiro">Caixinha</NavLink>
           {canAccessAdmin(member.permissions) ? <NavLink href="/admin">Administração</NavLink> : null}

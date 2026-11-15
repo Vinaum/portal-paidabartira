@@ -21,6 +21,7 @@ export default async function AdminHomePage() {
   const canReview = member.permissions.includes(PERMISSIONS.requestsReview);
   const canManageEvents = member.permissions.includes(PERMISSIONS.eventsManage);
   const canManageFinance = member.permissions.includes(PERMISSIONS.financeWrite);
+  const canManageAssociation = member.permissions.includes(PERMISSIONS.associationManage);
   const canPublish = member.permissions.includes(PERMISSIONS.announcementsPublish);
   const canModerate = member.permissions.includes(PERMISSIONS.storiesModerate);
   const canSettings = member.permissions.includes(PERMISSIONS.settingsManage);
@@ -74,6 +75,18 @@ export default async function AdminHomePage() {
           </div>
           <ButtonLink href="/financeiro" variant="dark">
             Abrir caixinhas
+          </ButtonLink>
+        </Card>
+      ) : null}
+
+      {canManageAssociation ? (
+        <Card className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold">Associação</h2>
+            <p>Adesões, mensalidades por PIX, livro-caixa, atas e documentos.</p>
+          </div>
+          <ButtonLink href="/admin/associacao" variant="dark">
+            Abrir Associação
           </ButtonLink>
         </Card>
       ) : null}

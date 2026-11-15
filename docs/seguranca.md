@@ -113,7 +113,7 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
 - **Livro imutável.** `ledger_entries` não aceita UPDATE nem DELETE (gatilho) nem TRUNCATE. Correção é por estorno (`reverses_id`, único, mesmo valor e tipo). O saldo nunca fica negativo (gatilho com trava na linha da caixinha). A única mudança tolerada é `created_by` virar nulo quando a conta é excluída (LGPD).
 - **Auditoria.** Criar/alterar caixinha, lançar, estornar e designar responsável vão para `audit_logs`, sem texto livre e sem a chave PIX.
 - **Limitação conhecida.** Como entradas aparecem somadas por mês, um mês com uma única entrada revela o valor dela (não quem pagou). Se isso incomodar, agrupar por trimestre é uma mudança pequena em `fund_cashflow`.
-- **Futuro: Associação.** Uma área só para associados exigirá novo valor em `fund_visibility` (`ADD VALUE 'associates'`) e uma tabela de associados; não está implementado.
+- **Associação.** Tem livro-caixa e área próprios (seção *Associação*); não usa `funds`.
 
 ## Loja (catálogo e pedidos)
 
@@ -213,3 +213,17 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
   pré-renderizada causava erro de hidratação para quem estava logado.
 - Nas áreas restritas o contador é lido do cookie no servidor. Adicionar ao carrinho e finalizar
   navegam pelo cliente (e não por `redirect`), porque mexer no cookie atualiza a página atual.
+
+## Associação
+
+Grupo de ex-moradores e agregados que apoia a república. Migration `20261126000100_association.sql`.
+
+- **Adesão por aprovação.** Só integrante ativo com categoria `ex_morador` ou `agregado` pede (`association_apply`); atual morador é recusado no banco. Quem tem `association.manage` aprova, recusa ou registra a saída (`association_decide`, com transições validadas). Permissão nova, dada ao administrador (e ao superadmin); o superadmin pode atribuí-la a moderador na tela de permissões.
+- **Quem vê o quê.** Associado ativo (e integrante ativo: a checagem relê `members` a cada consulta, então suspensão corta o acesso na hora) e quem gerencia veem resumo, fluxo por mês, cada saída, documentos e o PIX. Integrante comum e visitante não veem nada; o pedido de adesão só é visto por quem o fez e pela gestão. As tabelas só têm `SELECT` para `authenticated`; toda escrita passa por funções `security definer`.
+- **Mensalidades.** O associado *informa* o pagamento (mês e valor; um por mês, não futuro). A gestão confere o PIX no extrato e confirma ou recusa. Não há retorno do banco. Confirmar lança uma entrada no livro-caixa com a descrição "Mensalidade MM/AAAA", **sem o nome**; a ligação pessoa-mês fica só em `association_dues` (do próprio associado e da gestão). Estornar a entrada de uma mensalidade volta a mensalidade para recusada e libera o mês.
+- **Livro-caixa imutável**, como o da caixinha: sem UPDATE/DELETE/TRUNCATE, estorno por `reverses_id`, saldo nunca negativo (trava na linha de `association_settings`), `created_by` pode virar nulo na exclusão de conta.
+- **PIX.** Chave única em `association_settings`, sem política nem GRANT: só as funções leem (`association_get_settings`, associados e gestão) e gravam (`association_save_settings`, gestão). A auditoria não leva a chave. QR com a mensalidade sugerida, gerado no servidor com o mesmo `buildPixPayload` da loja (cidade fixa "BRASIL").
+- **Documentos (PDF).** Bucket privado `association-media`, 8 MB, só `application/pdf`. O servidor confere a assinatura `%PDF-`, grava com a chave de serviço em `docs/<uuid>.pdf` (nome gerado, nunca o do arquivo) e entrega link assinado de 1 hora a associados e gestão. Se o registro no banco falhar, o arquivo é apagado. Aviso na tela: não enviar PDF com dados pessoais de terceiros.
+- **Exclusão de conta (LGPD).** Cadastro e mensalidades apagam em cascata; as entradas do livro-caixa ficam sem ligação com a pessoa. Documentos são da instituição e permanecem.
+- **Risco aceito.** Quem tem `association.manage` altera a chave PIX da Associação e pode desviar mensalidades; mitigação: poucos portadores, auditoria da troca (sem a chave) e conferência manual de cada pagamento.
+- Versão `2026-11-15` da política: Associação.

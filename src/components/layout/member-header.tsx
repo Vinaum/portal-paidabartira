@@ -25,7 +25,7 @@ const ACCOUNT: NavItem[] = [{ href: "/perfil", label: "Meu perfil" }];
 /** Cabeçalho das áreas restritas. Os atalhos dependem das permissões. */
 export function MemberHeader({ member, area }: { member: CurrentMember; area: "membros" | "admin" }) {
   return (
-    <header className="bg-preto text-creme">
+    <header className="border-b-4 border-preto bg-verde text-creme">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <Link href="/painel" className="flex items-center gap-3">
           <LogoSeal size={44} />

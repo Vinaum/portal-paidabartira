@@ -29,9 +29,9 @@ export default function PrivacyPage() {
       <section className="flex flex-col gap-2">
         <h2 className="text-2xl font-semibold">O que mudou nesta versão</h2>
         <p>
-          Esta versão passa a cobrir a Associação, grupo de ex-moradores e agregados que apoia a república: o pedido de
-          adesão, as mensalidades informadas por PIX, o livro-caixa e os documentos. Também explica o que acontece com
-          esses dados quando uma conta é excluída.
+          Esta versão passa a cobrir as vagas para novos moradores: os dados de quem demonstra interesse numa vaga
+          (nome, e-mail, telefone, curso e mensagem), que ficam guardados por no máximo 90 dias. A versão anterior
+          cobriu a Associação, grupo de ex-moradores e agregados que apoia a república.
         </p>
       </section>
 
@@ -53,6 +53,11 @@ export default function PrivacyPage() {
           <li>
             <strong>Pedido de acesso:</strong> nome, apelido, e-mail, telefone (opcional), relação com a república
             e o que você escrever sobre o seu vínculo. Servem só para a administração decidir sobre o pedido.
+          </li>
+          <li>
+            <strong>Interesse numa vaga:</strong> nome, e-mail, telefone (opcional), curso ou ocupação (opcional) e a
+            mensagem que você escrever. Servem só para a república entrar em contato sobre a vaga. Não é preciso ter
+            conta para enviar.
           </li>
           <li>
             <strong>Conta:</strong> e-mail de login e senha. A senha é guardada de forma cifrada pelo serviço de
@@ -153,6 +158,10 @@ export default function PrivacyPage() {
             sem o nome de quem contribuiu. Ninguém mais tem acesso a essa área.
           </li>
           <li>
+            <strong>Interesse numa vaga:</strong> visto apenas por quem gerencia as vagas. A vaga em si é pública; os
+            dados de quem se interessou, não.
+          </li>
+          <li>
             <strong>Pedido de acesso:</strong> visto apenas por quem analisa solicitações.
           </li>
         </ul>
@@ -203,6 +212,11 @@ export default function PrivacyPage() {
           </li>
         </ul>
         <p>Pedidos de acesso rejeitados ficam guardados com a decisão da administração, para registro.</p>
+        <p>
+          <strong>Interesse numa vaga</strong> (de quem não tem conta): apagado automaticamente com 90 dias, e antes
+          disso se a administração apagar ou se você pedir pelo contato acima. Apagar uma vaga apaga os interesses
+          recebidos nela.
+        </p>
       </section>
 
       <section className="flex flex-col gap-2">

@@ -22,6 +22,7 @@ export default async function AdminHomePage() {
   const canManageEvents = member.permissions.includes(PERMISSIONS.eventsManage);
   const canManageFinance = member.permissions.includes(PERMISSIONS.financeWrite);
   const canManageAssociation = member.permissions.includes(PERMISSIONS.associationManage);
+  const canManageVacancies = member.permissions.includes(PERMISSIONS.vacanciesManage);
   const canPublish = member.permissions.includes(PERMISSIONS.announcementsPublish);
   const canModerate = member.permissions.includes(PERMISSIONS.storiesModerate);
   const canSettings = member.permissions.includes(PERMISSIONS.settingsManage);
@@ -75,6 +76,18 @@ export default async function AdminHomePage() {
           </div>
           <ButtonLink href="/financeiro" variant="dark">
             Abrir caixinhas
+          </ButtonLink>
+        </Card>
+      ) : null}
+
+      {canManageVacancies ? (
+        <Card className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold">Vagas</h2>
+            <p>Divulgue vagas para novos moradores e veja quem demonstrou interesse.</p>
+          </div>
+          <ButtonLink href="/admin/vagas" variant="dark">
+            Abrir Vagas
           </ButtonLink>
         </Card>
       ) : null}

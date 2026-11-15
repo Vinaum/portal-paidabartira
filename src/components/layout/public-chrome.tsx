@@ -22,6 +22,9 @@ export function PublicHeader() {
           <Link href="/moradores" className="font-semibold underline-offset-4 hover:underline">
             Moradores
           </Link>
+          <Link href="/vagas" className="font-semibold underline-offset-4 hover:underline">
+            Vagas
+          </Link>
           <Link href="/caixinha" className="font-semibold underline-offset-4 hover:underline">
             Caixinha
           </Link>

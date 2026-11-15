@@ -227,3 +227,15 @@ Grupo de ex-moradores e agregados que apoia a república. Migration `20261126000
 - **Exclusão de conta (LGPD).** Cadastro e mensalidades apagam em cascata; as entradas do livro-caixa ficam sem ligação com a pessoa. Documentos são da instituição e permanecem.
 - **Risco aceito.** Quem tem `association.manage` altera a chave PIX da Associação e pode desviar mensalidades; mitigação: poucos portadores, auditoria da troca (sem a chave) e conferência manual de cada pagamento.
 - Versão `2026-11-15` da política: Associação.
+
+## Vagas para novos moradores
+
+Migration `20261127000100_vacancies.sql`.
+
+- **Público.** Qualquer visitante lê as vagas *abertas* (RLS `status = 'open'`) em `/vagas`; vagas encerradas só a gestão vê. Quem tem `vacancies.manage` (administrador e superadmin; atribuível a moderador) cria, edita, encerra e apaga vagas e vê os interesses. Escrita só por funções `security definer`.
+- **Candidatos são pessoas de fora, sem conta.** O formulário chama `vacancy_express_interest` (única porta; sem INSERT direto), com aceite da política (versão validada no banco), campo-isca antirrobô, limite de 30 envios por hora e resposta idêntica para e-mail repetido (não revela quem já se candidatou).
+- **Retenção de 90 dias.** A RLS já esconde da gestão o que passa de 90 dias; a remoção física acontece quando um novo interesse chega e quando a tela de gestão chama `vacancy_purge_old_interests` ao abrir. Não há agendador: se ninguém enviar interesse nem abrir a tela, dados antigos ficam até a próxima atividade. Para garantir a data, agende a limpeza (pg_cron) quando o plano permitir. A gestão apaga um interesse ou a vaga inteira (cascata) na hora.
+- **Auditoria** só com identificadores; nunca nome, e-mail ou telefone. A descrição da vaga é pública: a tela avisa para não colocar telefone, CPF nem endereço completo.
+- **Risco aceito.** O limite de envios é global (não por IP): alguém pode esgotar os 30/h e impedir interessados reais por uma hora. Troque por Turnstile/CAPTCHA se virar problema.
+- Versão `2026-11-15.2` da política: vagas.
+

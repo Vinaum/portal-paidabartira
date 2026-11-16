@@ -13,6 +13,8 @@ import { requirePublicEnv } from "@/lib/env";
  *   2. bloquear ou desbloquear conta no Auth (suspensão);
  *   3. gravar fotos de produto da loja e assinar seus endereços (bucket "shop-media";
  *      a permissão é conferida antes, e a RLS já filtrou quais produtos a pessoa vê);
+ *   3b. gravar, ler e apagar flyers de eventos (bucket "event-media"; a rota que entrega a imagem
+ *      só lê depois de a RLS de `events` liberar o evento para quem pede);
  *   4. excluir conta (pedido do titular), incluindo apagar os arquivos da
  *      pessoa no storage.
  * Quem chama deve ANTES conferir a permissão do usuário logado

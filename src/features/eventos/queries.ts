@@ -19,10 +19,11 @@ const eventSchema = z.object({
   ends_at: z.string().nullable(),
   visibility: z.enum(EVENT_VISIBILITIES),
   status: z.enum(EVENT_STATUSES),
+  flyer_path: z.string().nullable(),
 });
 export type EventRow = z.infer<typeof eventSchema>;
 
-const COLUMNS = "id, title, description, location, starts_at, ends_at, visibility, status";
+const COLUMNS = "id, title, description, location, starts_at, ends_at, visibility, status, flyer_path";
 
 type Scope = "upcoming" | "past";
 

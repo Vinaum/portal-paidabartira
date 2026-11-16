@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { flyerStoragePath, flyerUrl } from "@/features/eventos/flyer";
 import { eventSchema, rsvpSchema } from "@/features/eventos/schemas";
 import { eventDayParts, formatEventWhen, fromLocalInput, isPast, toLocalInput } from "@/features/eventos/time";
 
@@ -73,5 +74,19 @@ describe("eventos: presença", () => {
   });
   it("recusa resposta desconhecida", () => {
     expect(rsvpSchema.safeParse({ eventId: id, answer: "sim", guests: "0" }).success).toBe(false);
+  });
+});
+
+describe("eventos: flyer", () => {
+  const eventId = "7b8d0f64-6d3c-4a7e-9a0e-2f6a3d1c9b11";
+  it("caminho segue o formato que o banco exige", () => {
+    expect(flyerStoragePath(eventId)).toMatch(new RegExp(`^${eventId}/[0-9a-f-]{36}\\.webp$`));
+  });
+  it("endereço passa pela rota e leva a versão do arquivo", () => {
+    const path = `${eventId}/0f9d6a2e-1111-4222-8333-444455556666.webp`;
+    expect(flyerUrl(eventId, path)).toBe(`/api/eventos/${eventId}/flyer?v=0f9d6a2e-1111-4222-8333-444455556666`);
+  });
+  it("sem flyer, sem endereço", () => {
+    expect(flyerUrl(eventId, null)).toBeNull();
   });
 });

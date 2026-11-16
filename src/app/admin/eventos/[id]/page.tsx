@@ -7,6 +7,7 @@ import { Notice } from "@/components/ui/notice";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { DeleteDraftForm } from "@/features/eventos/components/delete-draft-form";
 import { EventForm } from "@/features/eventos/components/event-form";
+import { flyerUrl } from "@/features/eventos/flyer";
 import { countGoing, getAttendees, getEvent } from "@/features/eventos/queries";
 import { RSVP_LABELS } from "@/features/eventos/schemas";
 import { toLocalInput } from "@/features/eventos/time";
@@ -18,7 +19,7 @@ export const metadata: Metadata = { title: "Editar evento" };
 export default async function EditEventPage({ params, searchParams }: PageProps<"/admin/eventos/[id]">) {
   await requirePermission(PERMISSIONS.eventsManage);
   const { id } = await params;
-  const { criado } = await searchParams;
+  const { criado, flyer } = await searchParams;
   const event = await getEvent(id);
   if (!event) notFound();
   const attendees = await getAttendees(event.id);
@@ -38,6 +39,9 @@ export default async function EditEventPage({ params, searchParams }: PageProps<
             : "Evento criado."}
         </Notice>
       ) : null}
+      {flyer === "erro" ? (
+        <Notice tone="error">O evento foi criado, mas o flyer não foi enviado. Escolha a imagem de novo e salve.</Notice>
+      ) : null}
       <Card>
         <EventForm
           event={{
@@ -49,6 +53,7 @@ export default async function EditEventPage({ params, searchParams }: PageProps<
             endsAt: event.ends_at ? toLocalInput(event.ends_at) : "",
             visibility: event.visibility,
             status: event.status,
+            flyerUrl: flyerUrl(event.id, event.flyer_path),
           }}
         />
       </Card>

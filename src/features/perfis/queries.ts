@@ -12,6 +12,7 @@ const profileSchema = z.object({
   full_name: z.string(),
   display_name: z.string(),
   nickname: text,
+  entry_year: z.number().nullable(),
   bio: text,
   origin_city: text,
   origin_state: text,
@@ -81,7 +82,7 @@ export async function getOwnProfile(memberId: string): Promise<OwnProfile> {
   const [profile, periods, social, birthday, emails, phone, address, professional, education, privacy] = await Promise.all([
     own(
       "profiles",
-      "full_name, display_name, nickname, bio, origin_city, origin_state, origin_country, current_city, current_country, show_on_public_portal",
+      "full_name, display_name, nickname, entry_year, bio, origin_city, origin_state, origin_country, current_city, current_country, show_on_public_portal",
     ).single(),
     own("residency_periods", "id, started_on, ended_on").order("started_on", { ascending: true }),
     own("profile_social", "linkedin_url, instagram_url, facebook_url, x_url, github_url, other_url").maybeSingle(),

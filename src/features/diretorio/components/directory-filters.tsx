@@ -13,18 +13,29 @@ import { hasActiveFilters } from "../schemas";
 export function DirectoryFiltersForm({ filters }: { filters: DirectoryFilters }) {
   const active = hasActiveFilters(filters);
   const advancedActive = Object.entries(filters).some(
-    ([key, value]) => key !== "q" && key !== "pagina" && value !== undefined,
+    ([key, value]) => key !== "q" && key !== "ingresso" && key !== "pagina" && value !== undefined,
   );
   return (
     <form method="get" action="/diretorio" className="flex flex-col gap-4" role="search">
-      <TextField
-        name="q"
-        type="search"
-        label="Nome ou apelido"
-        defaultValue={filters.q ?? ""}
-        maxLength={80}
-        autoComplete="off"
-      />
+      <div className="grid gap-4 sm:grid-cols-[1fr_14rem]">
+        <TextField
+          name="q"
+          type="search"
+          label="Nome ou apelido"
+          defaultValue={filters.q ?? ""}
+          maxLength={80}
+          autoComplete="off"
+        />
+        <TextField
+          name="ingresso"
+          label="Turma (ano de ingresso)"
+          hint="Ex.: 06 ou 2006"
+          inputMode="numeric"
+          maxLength={4}
+          autoComplete="off"
+          defaultValue={filters.ingresso ? String(filters.ingresso) : ""}
+        />
+      </div>
       <details open={advancedActive}>
         <summary className="cursor-pointer font-semibold underline-offset-4 hover:underline">Mais filtros</summary>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">

@@ -4,6 +4,7 @@ import { Notice } from "@/components/ui/notice";
 
 import { listEvents } from "../queries";
 import { EventCard } from "./event-card";
+import { EventFlyer } from "./event-flyer";
 
 /** Próximos eventos públicos na página inicial. Some se não houver nenhum. */
 export async function HomeUpcomingEvents() {
@@ -37,6 +38,7 @@ export async function PublicEventsList() {
         <li key={event.id} className="flex flex-col gap-2">
           <EventCard event={event} />
           {event.description ? <p className="whitespace-pre-line pl-2">{event.description}</p> : null}
+          <EventFlyer event={event} className="pl-2" />
         </li>
       ))}
     </ul>

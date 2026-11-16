@@ -9,7 +9,7 @@ Comunidade, memória e networking da república Paidabartira (fundada em 4 de ma
 | Fundação: identidade visual, banco com RLS, autenticação | Pronto |
 | Solicitação e aprovação de acesso, convite | Pronto |
 | Perfis e privacidade (vários períodos na república, formação, redes sociais, visibilidade por seção) | Pronto, exceto foto |
-| Foto de perfil, diretório, administração de integrantes, eventos, caixinha, loja com carrinho e PIX, comunicados, histórias, Museu (álbuns de fotos), Associação (adesão, mensalidades por PIX, livro-caixa, documentos), Vagas (divulgação e interesse) | Pronto |
+| Foto de perfil, diretório, administração de integrantes, eventos, caixinha, loja com carrinho e PIX, comunicados, histórias, Museu (álbuns de fotos), Associação (adesão, mensalidades por PIX, livro-caixa, documentos), Vagas (divulgação e interesse), flyer por evento, turma (ano de ingresso) no diretório | Pronto |
 | Painel do integrante e portal público completo | Pronto |
 
 ## Tecnologias

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Seal } from "@/components/ui/seal";
+import { entryYearTag } from "@/lib/cohort";
 import { formatPeriodYears } from "@/lib/format";
 import { CATEGORY_LABELS } from "@/lib/permissions";
 
@@ -23,6 +24,12 @@ export function MemberCard({ entry }: { entry: DirectoryEntry }) {
         </h2>
         <div className="flex flex-wrap gap-2">
           <Seal>{CATEGORY_LABELS[entry.category]}</Seal>
+          {entry.entry_year ? (
+            <Seal tone="preto">
+              <span className="sr-only">Turma de {entry.entry_year}: </span>
+              <span aria-hidden="true" title={`Turma de ${entry.entry_year}`}>{entryYearTag(entry.entry_year)}</span>
+            </Seal>
+          ) : null}
           {entry.is_founder ? <Seal tone="vinho">Fundador</Seal> : null}
         </div>
         {periods ? <p className="text-sm">Na casa: {periods}</p> : null}

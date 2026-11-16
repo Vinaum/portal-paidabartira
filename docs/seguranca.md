@@ -70,6 +70,11 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
   visibilidade da seção "foto" do dono.
 - Pedido de exclusão de conta: um por vez, abre uma solicitação em `data_requests`; a
   análise pela administração entra com o módulo de administração.
+- **Turma (ano de ingresso na faculdade).** Coluna `profiles.entry_year`, preenchida pelo próprio
+  integrante (aceita `2006` ou `06`; vazio é permitido). É filtro da busca (`ingresso`, também
+  aceita `06`/`2006`) e aparece como etiqueta `’06` nos cartões e no perfil. A concessão de leitura
+  ao visitante é por coluna e não inclui `entry_year`, e `public_people` não a devolve: o ano só
+  é visto por integrantes ativos. Testes em `04_directory.test.sql`.
 
 ## Administração de integrantes e pedidos de dados
 
@@ -104,6 +109,17 @@ Padrões na criação da conta: telefone e endereço privados; as demais, soment
   ativos (`event_attendees` é `SECURITY INVOKER`). Testes em `06_events.test.sql`.
 - Horários: o banco guarda o instante; o formulário trabalha em horário de Brasília e a
   conversão fica em `features/eventos/time.ts` (com testes).
+- **Flyer (imagem de divulgação).** Opcional, um por evento. O arquivo fica no bucket privado
+  `event-media`, sem política de storage: só o servidor lê e grava. O servidor decodifica com
+  `sharp`, recusa o que não for imagem, limita o lado maior a 1800 px e regrava em WebP (sem
+  metadados). Quem vê é decidido pela RLS de `events`: a rota `/api/eventos/<id>/flyer` lê a linha
+  do evento com a sessão de quem pede (visitante ou integrante) e só então busca o arquivo com a
+  chave de servidor; evento que a pessoa não pode ler (rascunho, ou só de integrantes para
+  visitante) responde 404. O cache compartilhado só vale para evento público e publicado. O
+  caminho do arquivo só muda pela função `set_event_flyer` (exige `events.manage` e o formato
+  `<id do evento>/<uuid>.webp`); não há `UPDATE` direto na coluna. Trocar ou remover apaga o
+  arquivo anterior, e apagar um rascunho apaga o flyer. Testes em `06_events.test.sql`.
+  Atenção: num evento público o flyer é público, então não coloque nele dado pessoal.
 
 ## Caixinha (transparência financeira)
 

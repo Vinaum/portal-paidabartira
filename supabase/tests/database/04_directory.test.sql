@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
-select plan(20);
+select plan(27);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'a@example.test'),
@@ -86,6 +86,25 @@ select throws_ok(
 select throws_ok(
   $$insert into public.data_requests (member_id, kind) values ('00000000-0000-0000-0000-0000000000a1', 'deletion')$$,
   '42501', null, 'ninguém abre pedido em nome de outra pessoa');
+reset role;
+
+-- Turma (ano de ingresso) ----------------------------------------------------------------
+update public.profiles set entry_year = 2006 where member_id = '00000000-0000-0000-0000-0000000000a1';
+update public.profiles set entry_year = 2008 where member_id = '00000000-0000-0000-0000-0000000000b1';
+select public.t_login('00000000-0000-0000-0000-0000000000b1');
+select is((select count(*) from public.search_directory(p_entry_year => 2006))::int, 1, 'filtra pela turma');
+select is((select display_name from public.search_directory(p_entry_year => 2006)), 'Zeca', 'a turma certa vem na lista');
+select is((select entry_year from public.search_directory(p_query => 'zeca')), 2006::smallint, 'a busca devolve o ano de ingresso');
+select is((select count(*) from public.search_directory(p_entry_year => 1999))::int, 0, 'turma sem ninguém não devolve nada');
+select throws_ok(
+  $$update public.profiles set entry_year = 1900 where member_id = '00000000-0000-0000-0000-0000000000b1'$$,
+  '23514', null, 'ano de ingresso fora do intervalo é recusado');
+update public.profiles set entry_year = 2001 where member_id = '00000000-0000-0000-0000-0000000000a1';
+select is((select entry_year from public.profiles where member_id = '00000000-0000-0000-0000-0000000000a1'),
+  2006::smallint, 'ninguém altera a turma de outra pessoa');
+reset role;
+set local role anon;
+select throws_ok($$select entry_year from public.profiles$$, '42501', null, 'visitante não lê o ano de ingresso');
 reset role;
 
 select * from finish();

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { parseEntryYear } from "@/lib/cohort";
+
 export const VISIBILITIES = ["public", "members", "private"] as const;
 export type Visibility = (typeof VISIBILITIES)[number];
 
@@ -32,6 +34,15 @@ export const basicsSchema = z.object({
   fullName: z.string().trim().min(3, "Informe o nome completo.").max(120, "Nome muito longo."),
   displayName: z.string().trim().min(1, "Informe como quer ser chamado.").max(60, "Use até 60 caracteres."),
   nickname: optional(60),
+  entryYear: z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+      if (value === "") return null;
+      const year = parseEntryYear(value);
+      if (year === null) ctx.addIssue({ code: "custom", message: "Use o ano com 4 dígitos (2006) ou só os 2 últimos (06)." });
+      return year;
+    }),
   bio: optional(2000),
   originCity: optional(80),
   originState: optional(80),

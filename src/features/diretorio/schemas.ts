@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { parseEntryYear } from "@/lib/cohort";
 import { MEMBER_CATEGORIES } from "@/lib/permissions";
 
 export const PAGE_SIZE = 24;
@@ -18,6 +19,15 @@ const year = z
   .transform(Number)
   .pipe(z.number().int().min(1950).max(2100));
 
+/** Turma: aceita "06" ou "2006" e guarda sempre o ano com 4 dígitos. */
+const cohort = z
+  .string()
+  .transform((value, ctx) => {
+    const parsed = parseEntryYear(value);
+    if (parsed === null) ctx.addIssue({ code: "custom" });
+    return parsed ?? 0;
+  });
+
 /** Filtro vindo da URL. Valor inválido é ignorado, nunca vira erro de página. */
 const lenient = <T extends z.ZodType>(schema: T) => schema.optional().catch(undefined);
 
@@ -25,6 +35,7 @@ const filtersSchema = z.object({
   q: lenient(text),
   categoria: lenient(z.enum(MEMBER_CATEGORIES)),
   fundadores: lenient(z.literal("1")),
+  ingresso: lenient(cohort),
   curso: lenient(text),
   instituicao: lenient(text),
   formatura: lenient(year),

@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
-select plan(27);
+select plan(36);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'membro@example.test'),
@@ -80,6 +80,33 @@ delete from public.events where id = '00000000-0000-0000-0000-0000000000e1';
 select is((select count(*) from public.events where id = '00000000-0000-0000-0000-0000000000e1')::int, 1, 'evento publicado não se apaga');
 delete from public.events where id = '00000000-0000-0000-0000-0000000000e3';
 select is((select count(*) from public.events where id = '00000000-0000-0000-0000-0000000000e3')::int, 0, 'rascunho se apaga');
+reset role;
+
+-- Flyer ----------------------------------------------------------------------------------
+update public.events set flyer_path = '00000000-0000-0000-0000-0000000000e1/0f9d6a2e-1111-4222-8333-444455556666.webp'
+  where id = '00000000-0000-0000-0000-0000000000e1';
+set local role anon;
+select is((select flyer_path from public.events where id = '00000000-0000-0000-0000-0000000000e1'),
+  '00000000-0000-0000-0000-0000000000e1/0f9d6a2e-1111-4222-8333-444455556666.webp', 'visitante vê o flyer de evento público');
+select is((select count(*) from public.events where flyer_path is not null and visibility = 'members')::int, 0, 'visitante não vê flyer de evento só de integrantes');
+select throws_ok($$select public.set_event_flyer('00000000-0000-0000-0000-0000000000e1', null)$$, '42501', null, 'visitante não troca flyer');
+reset role;
+
+select public.t_login('00000000-0000-0000-0000-0000000000a1');
+select throws_ok($$select public.set_event_flyer('00000000-0000-0000-0000-0000000000e1', null)$$, '42501', null, 'integrante comum não troca flyer');
+reset role;
+
+select public.t_login('00000000-0000-0000-0000-0000000000b1');
+select throws_ok($$update public.events set flyer_path = 'qualquer/coisa.webp' where id = '00000000-0000-0000-0000-0000000000e2'$$, '42501', null, 'o caminho do flyer não se grava por UPDATE direto');
+select throws_ok(
+  $$select public.set_event_flyer('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-0000000000e1/0f9d6a2e-1111-4222-8333-444455556666.webp')$$,
+  '23514', null, 'o caminho tem de pertencer ao próprio evento');
+select is(
+  public.set_event_flyer('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000e1/aaaaaaaa-1111-4222-8333-444455556666.webp'),
+  '00000000-0000-0000-0000-0000000000e1/0f9d6a2e-1111-4222-8333-444455556666.webp', 'trocar o flyer devolve o arquivo anterior');
+select is(public.set_event_flyer('00000000-0000-0000-0000-0000000000e1', null),
+  '00000000-0000-0000-0000-0000000000e1/aaaaaaaa-1111-4222-8333-444455556666.webp', 'remover o flyer devolve o arquivo anterior');
+select throws_ok($$select public.set_event_flyer('00000000-0000-0000-0000-00000000ffff', null)$$, 'P0002', null, 'evento inexistente');
 reset role;
 
 select * from finish();

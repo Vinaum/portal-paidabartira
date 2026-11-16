@@ -9,6 +9,7 @@ import { MemberPhoto } from "@/features/diretorio/components/member-photo";
 import { getMemberProfile } from "@/features/diretorio/queries";
 import { COMPLETION_LABELS, SOCIAL_NETWORKS } from "@/features/perfis/schemas";
 import { requireActiveMember } from "@/lib/auth/session";
+import { entryYearTag } from "@/lib/cohort";
 import { formatPeriod } from "@/lib/format";
 import { CATEGORY_LABELS } from "@/lib/permissions";
 
@@ -51,6 +52,12 @@ export default async function MemberProfilePage({ params }: PageProps<"/diretori
           </p>
           <div className="flex flex-wrap gap-2">
             <Seal>{CATEGORY_LABELS[member.category]}</Seal>
+            {member.entryYear ? (
+              <Seal tone="preto">
+                <span className="sr-only">Turma de {member.entryYear}: </span>
+                <span aria-hidden="true" title={`Turma de ${member.entryYear}`}>{entryYearTag(member.entryYear)}</span>
+              </Seal>
+            ) : null}
             {member.isFounder ? <Seal tone="vinho">Fundador</Seal> : null}
           </div>
           {member.id === viewer.id ? (

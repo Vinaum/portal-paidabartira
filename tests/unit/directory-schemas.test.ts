@@ -9,6 +9,16 @@ describe("diretório: filtros da URL", () => {
     expect(filters).toMatchObject({ q: "José", categoria: "ex_morador", morou: 2009, fundadores: "1" });
   });
 
+  it("turma aceita 06 ou 2006 e guarda o ano completo", () => {
+    expect(parseDirectoryFilters({ ingresso: "06" }).ingresso).toBe(2006);
+    expect(parseDirectoryFilters({ ingresso: "2006" }).ingresso).toBe(2006);
+    expect(parseDirectoryFilters({ ingresso: "95" }).ingresso).toBe(1995);
+    expect(parseDirectoryFilters({ ingresso: "6" })).toEqual({});
+    expect(parseDirectoryFilters({ ingresso: "1800" })).toEqual({});
+    expect(hasActiveFilters(parseDirectoryFilters({ ingresso: "06" }))).toBe(true);
+    expect(filtersToSearch(parseDirectoryFilters({ ingresso: "06" }), 2)).toBe("?ingresso=2006&pagina=2");
+  });
+
   it("ignora valor inválido em vez de falhar", () => {
     const filters = parseDirectoryFilters({ categoria: "root", morou: "20x9", formatura: "1800", pagina: "0", fundadores: "sim" });
     expect(filters).toEqual({});

@@ -6,8 +6,11 @@ import { redirect } from "next/navigation";
 import { requireActiveMember, requirePermission } from "@/lib/auth/session";
 import { fieldErrorsFrom, type FormState } from "@/lib/form";
 import { PERMISSIONS } from "@/lib/permissions";
+import { reencodeToWebp } from "@/lib/images";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+import { EVENT_BUCKET, FLYER_MAX_SIDE, flyerStoragePath } from "./flyer";
 import { eventIdSchema, eventSchema, rsvpSchema } from "./schemas";
 
 const text = (formData: FormData, name: string) => String(formData.get(name) ?? "");
@@ -17,6 +20,34 @@ function revalidateEvents() {
   revalidatePath("/admin/eventos", "layout");
   revalidatePath("/eventos");
   revalidatePath("/painel");
+}
+
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Grava, troca ou remove o flyer. A função do banco confere a permissão e o
+ * formato do caminho e devolve o arquivo anterior, que é apagado depois de a
+ * troca valer (se a gravação falhar, o flyer velho continua no lugar).
+ */
+async function applyFlyer(
+  supabase: SupabaseClient,
+  eventId: string,
+  change: { image: Buffer } | { remove: true },
+): Promise<boolean> {
+  const storage = createAdminClient().storage.from(EVENT_BUCKET);
+  let path: string | null = null;
+  if ("image" in change) {
+    path = flyerStoragePath(eventId);
+    const upload = await storage.upload(path, change.image, { contentType: "image/webp" });
+    if (upload.error) return false;
+  }
+  const { data: previous, error } = await supabase.rpc("set_event_flyer", { p_event_id: eventId, p_path: path });
+  if (error) {
+    if (path) await storage.remove([path]);
+    return false;
+  }
+  if (typeof previous === "string" && previous) await storage.remove([previous]);
+  return true;
 }
 
 /** Cria ou edita um evento. A RLS exige `events.manage`; a permissão é conferida aqui também. */
@@ -37,6 +68,17 @@ export async function saveEvent(_previous: FormState, formData: FormData): Promi
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrorsFrom(parsed.error), values };
   const input = parsed.data;
 
+  // O flyer é conferido antes de gravar o evento, para um arquivo ruim não deixar o evento pela metade.
+  const file = formData.get("flyer");
+  let flyerImage: Buffer | null = null;
+  if (file instanceof File && file.size > 0) {
+    const image = await reencodeToWebp(file, FLYER_MAX_SIDE);
+    if (!image.ok) return { status: "error", fieldErrors: { flyer: image.message }, values };
+    flyerImage = image.data;
+  }
+  const removeFlyer = flyerImage === null && formData.get("removeFlyer") === "on";
+  const flyerChange = flyerImage ? { image: flyerImage } : removeFlyer ? { remove: true as const } : null;
+
   const supabase = await createClient();
   const fields = {
     title: input.title,
@@ -53,7 +95,11 @@ export async function saveEvent(_previous: FormState, formData: FormData): Promi
     if (error || !data?.length) {
       return { status: "error", message: "Não foi possível salvar o evento.", values };
     }
+    const flyerOk = flyerChange ? await applyFlyer(supabase, input.eventId, flyerChange) : true;
     revalidateEvents();
+    if (!flyerOk) {
+      return { status: "error", message: "O evento foi salvo, mas o flyer não. Tente enviar a imagem de novo.", values };
+    }
     return { status: "success", message: "Evento salvo." };
   }
 
@@ -63,8 +109,9 @@ export async function saveEvent(_previous: FormState, formData: FormData): Promi
     .select("id")
     .single();
   if (error || !data) return { status: "error", message: "Não foi possível criar o evento.", values };
+  const flyerOk = flyerChange ? await applyFlyer(supabase, data.id, flyerChange) : true;
   revalidateEvents();
-  redirect(`/admin/eventos/${data.id}?criado=1`);
+  redirect(`/admin/eventos/${data.id}?criado=1${flyerOk ? "" : "&flyer=erro"}`);
 }
 
 /** Só rascunho se apaga (a RLS garante); evento publicado se cancela. */
@@ -74,10 +121,16 @@ export async function deleteDraftEvent(_previous: FormState, formData: FormData)
   if (!parsed.success) return { status: "error", message: "Pedido inválido." };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("events").delete().eq("id", parsed.data.eventId).select("id");
+  const { data, error } = await supabase
+    .from("events")
+    .delete()
+    .eq("id", parsed.data.eventId)
+    .select("id, flyer_path");
   if (error || !data?.length) {
     return { status: "error", message: "Só rascunhos podem ser apagados. Para um evento publicado, use Cancelado." };
   }
+  const flyerPath = data[0]?.flyer_path;
+  if (flyerPath) await createAdminClient().storage.from(EVENT_BUCKET).remove([flyerPath]);
   revalidateEvents();
   redirect("/admin/eventos?apagado=1");
 }

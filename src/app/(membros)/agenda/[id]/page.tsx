@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Notice } from "@/components/ui/notice";
 import { Seal, Stamp } from "@/components/ui/seal";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { EventFlyer } from "@/features/eventos/components/event-flyer";
 import { RsvpForm } from "@/features/eventos/components/rsvp-form";
 import { countGoing, getAttendees, getEvent, getMyRsvp } from "@/features/eventos/queries";
 import { RSVP_LABELS } from "@/features/eventos/schemas";
@@ -46,6 +47,7 @@ export default async function EventPage({ params }: PageProps<"/agenda/[id]">) {
         <p className="text-xl first-letter:uppercase">{formatEventWhen(event.starts_at, event.ends_at)}</p>
         {event.location ? <p>{event.location}</p> : null}
         {event.description ? <p className="whitespace-pre-line">{event.description}</p> : null}
+        <EventFlyer event={event} />
         {member.permissions.includes(PERMISSIONS.eventsManage) ? (
           <p>
             <Link href={`/admin/eventos/${event.id}`} className="font-semibold underline">

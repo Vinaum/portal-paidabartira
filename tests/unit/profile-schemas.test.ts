@@ -14,13 +14,22 @@ import {
 
 describe("perfil: identificação", () => {
   const base = {
-    fullName: "Fulano de Tal", displayName: "Fulano", nickname: "", bio: "", originCity: "", originState: "",
+    fullName: "Fulano de Tal", displayName: "Fulano", nickname: "", entryYear: "", bio: "", originCity: "", originState: "",
     originCountry: "", currentCity: " Campinas ", currentCountry: "", showOnPublicPortal: false,
   };
   it("vazio vira null e texto é aparado", () => {
     const parsed = basicsSchema.parse(base);
     expect(parsed.nickname).toBeNull();
     expect(parsed.currentCity).toBe("Campinas");
+  });
+  it("ano de ingresso aceita 2006 ou 06, e vazio vira null", () => {
+    expect(basicsSchema.parse(base).entryYear).toBeNull();
+    expect(basicsSchema.parse({ ...base, entryYear: "2006" }).entryYear).toBe(2006);
+    expect(basicsSchema.parse({ ...base, entryYear: " 06 " }).entryYear).toBe(2006);
+    expect(basicsSchema.parse({ ...base, entryYear: "’99" }).entryYear).toBe(1999);
+    expect(basicsSchema.safeParse({ ...base, entryYear: "206" }).success).toBe(false);
+    expect(basicsSchema.safeParse({ ...base, entryYear: "1800" }).success).toBe(false);
+    expect(basicsSchema.safeParse({ ...base, entryYear: "abc" }).success).toBe(false);
   });
   it("exige nome de exibição", () => {
     expect(basicsSchema.safeParse({ ...base, displayName: " " }).success).toBe(false);

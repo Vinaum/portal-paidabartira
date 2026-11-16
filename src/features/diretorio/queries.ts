@@ -18,6 +18,7 @@ const rowSchema = z.object({
   nickname: text,
   category: z.enum(MEMBER_CATEGORIES),
   is_founder: z.boolean(),
+  entry_year: z.number().nullable(),
   current_city: text,
   current_country: text,
   photo_path: text,
@@ -59,6 +60,7 @@ export async function searchDirectory(
     p_institution: filters.instituicao ?? null,
     p_graduation_year: filters.formatura ?? null,
     p_resident_year: filters.morou ?? null,
+    p_entry_year: filters.ingresso ?? null,
     p_profession: filters.profissao ?? null,
     p_company: filters.empresa ?? null,
     p_city: filters.cidade ?? null,
@@ -78,6 +80,7 @@ export async function searchDirectory(
       nickname: row.nickname,
       category: row.category,
       is_founder: row.is_founder,
+      entry_year: row.entry_year,
       current_city: row.current_city,
       current_country: row.current_country,
       photo_path: row.photo_path,
@@ -107,6 +110,7 @@ export type MemberProfile = {
   fullName: string;
   displayName: string;
   nickname: string | null;
+  entryYear: number | null;
   bio: string | null;
   origin: string | null;
   current: string | null;
@@ -145,7 +149,7 @@ export async function getMemberProfile(id: string): Promise<MemberProfile | null
     supabase.from("members").select("id, category, is_founder, status").eq("id", id).maybeSingle(),
     of(
       "profiles",
-      "full_name, display_name, nickname, bio, origin_city, origin_state, origin_country, current_city, current_country",
+      "full_name, display_name, nickname, entry_year, bio, origin_city, origin_state, origin_country, current_city, current_country",
     ).maybeSingle(),
     of("profile_photo", "media_path").maybeSingle(),
     of("residency_periods", "id, started_on, ended_on").order("started_on", { ascending: true }),
@@ -173,6 +177,7 @@ export async function getMemberProfile(id: string): Promise<MemberProfile | null
       full_name: z.string(),
       display_name: z.string(),
       nickname: text,
+      entry_year: z.number().nullable(),
       bio: text,
       origin_city: text,
       origin_state: text,
@@ -196,6 +201,7 @@ export async function getMemberProfile(id: string): Promise<MemberProfile | null
     fullName: p.full_name,
     displayName: p.display_name,
     nickname: p.nickname,
+    entryYear: p.entry_year,
     bio: p.bio,
     origin: place([p.origin_city, p.origin_state, p.origin_country]),
     current: place([p.current_city, p.current_country]),
